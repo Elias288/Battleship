@@ -1,0 +1,23 @@
+{
+  "name": "backend_battleship",
+  "version": "0.0.0",
+  "description": "Backend of the battleship game implementing socket.io for the live communication of each player",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "keywords": [],
+  "author": "Elias Bianchi",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.1",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "socket.io": "^4.5.3",
+    "uuid": "^9.0.0"
+  }
+}
