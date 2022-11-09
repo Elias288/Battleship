@@ -3,8 +3,10 @@ const http = require('http')
 // const { Server } = require('socket.io')
 const cors = require('cors')
 const bodyParser = require('body-parser')
-
+const { listPlayers, createPlayer, deletePlayer, setScore } = require('./services/player.service')
 const { author, license, name, description } = require('../package.json');
+require('dotenv').config()
+require('./services/bd.service')
 
 const app = express()
 
@@ -21,7 +23,6 @@ app.get('/', (req, res) => {
 		license, 
 	})
 })
-
 
 // const whiteList = [ 'http://localhost:4200', '*' ]
 // const io = new Server(server, {
