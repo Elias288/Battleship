@@ -1,24 +1,25 @@
 const playerSchema = require('../schemas/player.schema')
-const mongoose = require('mongoose')
 
 const listPlayers = async () => {
     return await playerSchema.find({});
 }
 
-const createPlayer = async (name) => {
+const savePlayer = async (name) => {
     const player = await playerSchema.findOne({ name })
-    if(player) return { error: 'User already exists'}
-
+    if(player != null) {
+        return player
+    }
+    
     const newPlayer = new playerSchema({
-        _id: new mongoose.Types.ObjectId(),
         name,
         score: 0,
     })
-    return await newPlayer.save()
+
+    return newPlayer.save()
 }
 
-const setScore = async (id, score, sum) => {
-    const player = await playerSchema.findById(id)
+const setScore =  (id, score, sum) => {
+    const player = playerSchema.findById(id)
     if(!player){
         return { error: 'User not found' }
     }
@@ -29,16 +30,22 @@ const setScore = async (id, score, sum) => {
             ? player.score -= score 
             : 0
 
-    return await playerSchema.findByIdAndUpdate(player.id, {score:newScore}, {new: true})
+    playerSchema.findByIdAndUpdate(player.id, {score:newScore}, {new: true})
+    return newScore
 }
 
-const deletePlayer = async (id) => {
-    return await playerSchema.findByIdAndDelete(id)
+const deletePlayer = (id) => {
+    return playerSchema.findByIdAndDelete(id)
+}
+
+const findPlayer = (name) => {
+    return playerSchema.findOne({name});
 }
 
 module.exports = {
     listPlayers,
-    createPlayer,
+    findPlayer,
+    savePlayer,
     deletePlayer,
     setScore,
 }

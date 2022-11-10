@@ -1,8 +1,7 @@
-const app = require('./app')
+const server = require('./app')
 
-app.set('port', process.env.PORT || 3001)
-app.set('json spaces', 2)
+const port = process.env.PORT || 3001
 
-app.listen(app.get('port'), () => {
-	console.log(`listen to port: *${app.get('port')}`)
+server.listen(port, () => {
+	console.log(`escuchando en *${port}`)
 })
