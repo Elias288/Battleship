@@ -6,11 +6,13 @@ const {
 class Player {
     cantShips = 5
     
-    constructor(socketId, player) {
+    constructor(socketId, id, name, score, uid, email) {
         this.socketId = socketId
-        this.id = player._id
-        this.name = player.name
-        this.score = player.score
+        this.id = id
+        this.name = name
+        this.score = score
+        this.uid = uid
+        this.email = email
     }
     
     changeScore(score, plus) {
