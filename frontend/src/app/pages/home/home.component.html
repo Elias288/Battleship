@@ -1,0 +1,37 @@
+<div class="home">
+
+    <mat-card class="score" *ngIf="userService.playerData">
+        <mat-card-title align="center">Your Score: {{userService.playerData.score}}</mat-card-title>
+    </mat-card>
+    <div class="user-list">
+        <mat-divider></mat-divider>
+        
+        <div class="connected-players" *ngIf="userService.playerlist.length > 0">
+            <h2>Connected players</h2>
+            <table mat-table [dataSource]="userService.playerlist" class="mat-elevation-z8 user-list-content">
+                <tr mat-header-row *matHeaderRowDef="['name', 'score']"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['name', 'score'];"></tr>
+    
+                <ng-container matColumnDef="name" class="name">
+                    <th mat-header-cell *matHeaderCellDef> Name </th>
+                    <td mat-cell *matCellDef="let player"> {{player.name}} </td>
+                </ng-container>
+    
+                <ng-container matColumnDef="score">
+                    <th mat-header-cell *matHeaderCellDef> Score </th>
+                    <td mat-cell *matCellDef="let player"> {{player.score}} </td>
+                </ng-container>
+            </table>
+        </div>
+        
+        <mat-card *ngIf="userService.playerlist.length == 0">
+            <h3 >Nobody connected</h3>
+        </mat-card>
+    </div>
+    <div class="home-content">
+        <h2>Battleship</h2>
+        <button mat-raised-button color="primary" (click)="openDialog(true)">Create new game</button>
+        <button mat-raised-button color="primary" (click)="openDialog(false)">Join game</button>
+        
+    </div>
+</div>

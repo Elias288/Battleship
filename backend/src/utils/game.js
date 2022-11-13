@@ -14,21 +14,24 @@ class Game {
     }
 
     getPlayerBySocketId(socketId){
-        return this.players.find((player) => player.socketId === socketId)
+        return this.players.find((player) => player.socketId == socketId)
+    }
+
+    getPlayerByUid(uid) {
+        return this.players.find((player) => player.uid == uid)
     }
 
     getMatch(partyId) {
         return this.matches.find(party => party.id == partyId)
     }
 
-    addToMatch(player, partyId) {
+    addToMatch(uid, partyId) {
         const find = this.getMatch(partyId)
         const match = find != undefined ? find : new Match(partyId)
         if (find == undefined) {
-            // console.log('create match')
             this.matches.push(match)
         }
-        
+        const player = this.getPlayerByUid(uid)
         if (match.player1 == null) {
             match.setPlayer1(player)
             return match
@@ -37,22 +40,19 @@ class Game {
             match.setPlayer2(player)
             return match
         }
-        
         return null
     }
 
     findMatch(playerId) {
-        console.log(playerId)
-        // console.log(this.matches)
         return this.matches.find(match => match.player1?.uid == playerId || match.player2?.uid == playerId)
     }
 
     removeToMatch(playerId) {
         const match = this.findMatch(playerId)
-        console.log('match finded', match)
+        // console.log('match finded', match)
         if (match) {    
             match.player1?.uid == playerId ? match.player1 = null: match.player2 = null
-            console.log(match)
+            // console.log(match)
         }
         
         return match

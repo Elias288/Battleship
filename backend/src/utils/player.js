@@ -13,6 +13,7 @@ class Player {
         this.score = score
         this.uid = uid
         this.email = email
+        this.points = 0
     }
     
     changeScore(score, plus) {

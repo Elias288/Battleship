@@ -1,0 +1,14 @@
+<h1>Create new game</h1>
+<div mat-dialog-content class="game-dialog">
+
+    <mat-form-field appearance="fill">
+        <mat-label>{{data.create ? 'Create a new match' : 'Join to the match'}}</mat-label>
+        <input matInput [(ngModel)]="data.roomId" *ngIf="data.create" [disabled]="data.create">
+        <input matInput [(ngModel)]="data.roomId" *ngIf="!data.create" value="">
+    </mat-form-field>
+</div>
+
+<div mat-dialog-actions>
+    <button mat-flat-button color="primary" (click)="submit()">{{data.create ? 'Create' : 'Join'}}</button>
+    <button mat-flat-button color="warn" (click)="onNoClick()">Cancel</button>
+</div>
