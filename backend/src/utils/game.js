@@ -68,12 +68,12 @@ class Game {
 class Match {
     constructor(id){
         this.id = id
-        this.player1 = null
-        this.player2 = null
+        this.player1 = undefined
+        this.player2 = undefined
     }
 
     setPlayer1(player){
-        if (this.player1 != null) {
+        if (this.player1 != undefined) {
             return false
         }
         this.player1 = player
@@ -81,7 +81,7 @@ class Match {
     }
 
     setPlayer2(player){
-        if (this.player2 != null) {
+        if (this.player2 != undefined) {
             return false
         }
         this.player2 = player

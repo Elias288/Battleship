@@ -1,2 +1,10 @@
 <p>game works!</p>
 <button (click)="socketIoService.disconnectToMatch()">disconnect</button>
+
+<div *ngIf="gameService.match">
+    <p>{{gameService.match.id}}</p>
+
+    <p>owner: {{gameService.match.player1.name}}</p>
+    
+    <p>{{gameService.match.player2?.name}}</p>
+</div>

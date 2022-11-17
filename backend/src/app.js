@@ -66,6 +66,7 @@ const join = async (socket, data) => {
 		data.uid,
 		data.email
 	)
+	console.log(newPlayer.name, 'connected')
 	const players = game.addPlayer(newPlayer)
 	socket.emit('playerList', players)
 	socket.broadcast.emit('playerList', players)
@@ -84,9 +85,10 @@ const addToMatch = async (socket, data) => {
 		socket.emit('error', 'match full')
 		return
 	}
+	console.log(match)
 	socket.join(data.matchId)
-	socket.emit('connectedToMatch', match)
-	socket.broadcast.to(data.matchId).emit('connectedToMatch', match)
+	socket.emit('matches', match)
+	socket.broadcast.to(data.matchId).emit('matches', match)
 }
 
 const removeToMatch = async (socket) => {
@@ -108,7 +110,7 @@ const disconnect = (socket) => {
 	const player = game.getPlayerBySocketId(socket.id)
 	
 	if (player != null) {
-		// console.log(player.name, 'disconnected')
+		console.log(player.name, 'disconnected')
 		const match = game.removeToMatch(player.uid)
 		if (match) socket.to(match.id).emit('matches', match)
 

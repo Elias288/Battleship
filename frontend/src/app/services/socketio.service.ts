@@ -3,6 +3,8 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { io } from 'socket.io-client';
 import { environment } from 'src/environments/environment';
+import { Match } from '../utils/match';
+import { Player } from '../utils/player';
 import { GameService } from './game.service';
 import { UserService } from './user.service';
 
@@ -26,18 +28,12 @@ export class SocketioService {
       throw new Error('C - ' + data)
     })
     
-    this.listen('playerList').subscribe((data: Array<any>) => {
+    this.listen('playerList').subscribe((data: Array<Player>) => {
       localStorage.removeItem('error')
       this.userService.setPlayers(data)
     })
     
-    this.listen('connectedToMatch').subscribe((data: Array<any>) => {
-      console.log(data)
-      this.gameService.joinGame(data)
-    })
-
-    this.listen('matches').subscribe((data: Array<any>) => {
-      console.log(data)
+    this.listen('matches').subscribe((data: Match) => {
       this.gameService.joinGame(data)
     })
 

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { GameService } from 'src/app/services/game.service';
 import { SocketioService } from 'src/app/services/socketio.service';
 
 @Component({
@@ -10,7 +11,8 @@ import { SocketioService } from 'src/app/services/socketio.service';
 export class GameComponent implements OnInit {
 
   constructor(
-    public socketIoService: SocketioService, 
+    public socketIoService: SocketioService,
+    public gameService: GameService,
     private activatedRoute: ActivatedRoute,
   ) { }
 

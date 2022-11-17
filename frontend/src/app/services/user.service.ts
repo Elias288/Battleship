@@ -5,28 +5,24 @@ import { v4 as uuidv4 } from 'uuid';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore, AngularFirestoreDocument} from '@angular/fire/compat/firestore';
 import { SocketioService } from './socketio.service';
+import { Player } from '../utils/player';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-  playerData: any;
-  playerlist: Array<any> = [];
+  playerData: Player | undefined;
+  playerlist: Array<Player> = [];
 
   constructor(
     public afs: AngularFirestore,
     public afAuth: AngularFireAuth,
-    // public socketioService: SocketioService,
   ) {
     this.afAuth.authState.subscribe((user: any) => {
       if (user) {
-        // this.playerData = user;
         localStorage.setItem('user', JSON.stringify(user));
-        // JSON.parse(localStorage.getItem('user')!);
       } else {
-        // localStorage.setItem('user', 'null');
         localStorage.removeItem('user');
-        // JSON.parse(localStorage.getItem('user')!);
       }
     });
   }
@@ -47,12 +43,11 @@ export class UserService {
     return this.isLoggedIn? this.user.displayName:"";
   }
 
-  setPlayers(players: Array<any>) {
+  setPlayers(players: Array<Player>) {
     if (this.isLoggedIn) {
       const loggedPlayer = JSON.parse(localStorage.getItem('user')!)
-      // this.playerlist = players.sort(a => a.uid == loggedPlayer.uid ? -1 : 1)
       this.playerlist = players.filter(a => a.uid != loggedPlayer.uid)
-      this.playerData = players.filter(a => a.uid == loggedPlayer.uid)[0]
+      this.playerData = players.find(a => a.uid == loggedPlayer.uid)
     }
   }
 
