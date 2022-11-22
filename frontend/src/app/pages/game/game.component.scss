@@ -1,0 +1,24 @@
+.match {
+    padding-top: 50px;
+    box-sizing: border-box;
+    height: 100vh;
+    display: flex;
+
+    .board {
+        width: 100%;
+        background-color: green;
+    }
+
+    .info {
+        width: 400px;
+        padding: 1rem;
+        box-sizing: border-box;
+
+        .ships {
+            width: 100%;
+            display: grid;
+            grid-template-columns: auto auto;
+            gap: 10px;
+        }
+    }
+}

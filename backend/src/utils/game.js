@@ -32,19 +32,24 @@ class Game {
             this.matches.push(match)
         }
         const player = this.getPlayerByUid(uid)
-        if (match.player1 == null) {
+
+        if (!match.isPlayer1()) {
             match.setPlayer1(player)
             return match
         }
-        if (match.player2 == null){
+        
+        if (!match.isPlayer2()) {
             match.setPlayer2(player)
             return match
         }
+
         return null
     }
 
     findMatch(playerId) {
-        return this.matches.find(match => match.player1?.uid == playerId || match.player2?.uid == playerId)
+        return this.matches.find(match => 
+            match?.player1?.uid == playerId || match?.player2?.uid == playerId
+        )
     }
 
     removeToMatch(playerId) {
@@ -53,8 +58,8 @@ class Game {
         if (match) {    
             match.player1?.uid == playerId ? match.player1 = null: match.player2 = null
             // console.log(match)
-        }
-        
+            match.isCanStart()
+        }        
         return match
     }
 
@@ -70,22 +75,28 @@ class Match {
         this.id = id
         this.player1 = undefined
         this.player2 = undefined
+        this.canStart = false
+    }
+
+    isPlayer1() { // return false if undefined
+        return this.player1 != undefined
+    }
+
+    isPlayer2() { // return false if undefined
+        return this.player2 != undefined
     }
 
     setPlayer1(player){
-        if (this.player1 != undefined) {
-            return false
-        }
         this.player1 = player
-        return true
     }
 
     setPlayer2(player){
-        if (this.player2 != undefined) {
-            return false
-        }
         this.player2 = player
-        return true
+    }
+
+    isCanStart() {
+        this.canStart = this.isPlayer1() && this.isPlayer2()
+        return this.canStart
     }
 }
 

@@ -34,6 +34,7 @@ export class SocketioService {
     })
     
     this.listen('matches').subscribe((data: Match) => {
+      console.log(data);
       this.gameService.joinGame(data)
     })
 
@@ -43,6 +44,10 @@ export class SocketioService {
       if (!data) {
         this.location.back()
       }
+    })
+
+    this.listen('canStart').subscribe((data: boolean) => {
+      console.log('canconected: ', data)
     })
   }
 
