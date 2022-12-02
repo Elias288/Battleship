@@ -8,4 +8,7 @@ export interface Player {
 
     score: number
     points: number
+
+    field: Array<number>
+    cantShips: number
 }

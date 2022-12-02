@@ -6,5 +6,11 @@
             <fa-icon [icon]="faGoogle"></fa-icon>
             Login
         </button>
+
+        <div class="temporal">
+            <input type="text" name="displayName" id="" [(ngModel)]="name" #textarea>
+            <input type="text" name="uuid" id="" [(ngModel)]="uuid">
+            <button (click)="loginTemporal()">login</button>
+        </div>
     </div>
 </div>

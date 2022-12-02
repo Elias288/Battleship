@@ -73,8 +73,10 @@ class Game {
 class Match {
     constructor(id){
         this.id = id
+        this.fieldSize = 25
         this.player1 = undefined
         this.player2 = undefined
+        this.canPutBoats = false
         this.canStart = false
     }
 
@@ -92,6 +94,11 @@ class Match {
 
     setPlayer2(player){
         this.player2 = player
+    }
+
+    isCanPutBoats() {
+        this.canPutBoats = this.isPlayer1() && this.isPlayer2()
+        return this.canPutBoats
     }
 
     isCanStart() {

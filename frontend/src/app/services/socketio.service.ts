@@ -5,7 +5,7 @@ import { io } from 'socket.io-client';
 import { environment } from 'src/environments/environment';
 import { Match } from '../utils/match';
 import { Player } from '../utils/player';
-import { GameService } from './game.service';
+import { MatchService } from './match.service';
 import { UserService } from './user.service';
 
 @Injectable({
@@ -17,7 +17,7 @@ export class SocketioService {
 
   constructor(
     private userService: UserService,
-    private gameService: GameService,
+    private matchService: MatchService,
     private location: Location,
   ) {
     this.socket = io(environment.SOCKET_ENDPOINT)
@@ -35,7 +35,11 @@ export class SocketioService {
     
     this.listen('matches').subscribe((data: Match) => {
       console.log(data);
-      this.gameService.joinGame(data)
+      this.matchService.setMatch(data)
+      const playerData = this.userService.playerData;
+      console.log(playerData);
+
+      this.matchService.joinMatch(data)
     })
 
     this.listen('isConnected').subscribe((data: boolean) => {
@@ -69,7 +73,7 @@ export class SocketioService {
     this.socket.emit('join', { 
       name: this.userService.user.displayName,
       uid: this.userService.user.uid,
-      email: this.userService.user.email
+      /* email: this.userService.user.email */
     })
     // console.log('connected')
     this.connected = true
@@ -89,7 +93,7 @@ export class SocketioService {
 
   disconnectToMatch(){
     this.socket.emit('removeToMatch', '')
-    this.gameService.leaveGame()
+    this.matchService.leaveMatch()
     window.location.href="/home";
   }
 }

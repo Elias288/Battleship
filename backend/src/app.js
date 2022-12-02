@@ -48,18 +48,16 @@ io.on('connection', (socket) => {
 	socket.on('disconnect', () => disconnect())
 
 	const join = async (data) => {
-		const name = data.name.toLowerCase()
-		let savedPlayer = await savePlayer(name, data.uid, data.email);
-		if (savedPlayer == null) {
-			savedPlayer = await findPlayer(name)
-		}
+		const { name, uid/* , email */ } = data
+		
+		let savedPlayer = await savePlayer(name, uid, /* data.email */);
 		const newPlayer = new Player(
 			socket.id,
 			savedPlayer._id,
 			savedPlayer.name,
 			savedPlayer.score,
-			data.uid,
-			data.email
+			uid,
+			/* data.email */
 		)
 		// console.log(newPlayer.name, 'connected')
 		const players = game.addPlayer(newPlayer)

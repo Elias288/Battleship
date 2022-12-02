@@ -1,19 +1,24 @@
 <div class="match">
 
     <div class="board">
+        <pre>{{ userService.playerData | json }}</pre>
+        <div class="field">
+            <div *ngFor="let cuadrito of matchService?.match">
 
+            </div>
+        </div>
     </div>
     <div class="info">
-        <p>{{gameService.match.id}}</p>
+        <p>{{matchService.match?.id}}</p>
 
         <button mat-stroked-button color="primary" (click)="socketIoService.disconnectToMatch()">disconnect</button>
-        <button mat-stroked-button color="primary" [disabled]="!gameService.match.canStart">Start</button>
+        <button mat-stroked-button color="primary" [disabled]="!matchService.match?.canStart">Start</button>
 
-        <p>owner: {{gameService.match?.player1?.name}}</p>
-        <p>{{gameService.match?.player2?.name}}</p>
+        <p>owner: {{matchService.match?.player1?.name}}</p>
+        <p>{{matchService.match?.player2?.name}}</p>
 
         <!-- <div class="ships"> -->
-        <div class="ships" *ngIf="gameService.match.canStart">
+        <div class="ships" *ngIf="matchService.match?.canStart">
             <button>ship1-2</button>
             <button>ship1-1</button>
             <button>ship2-1</button>

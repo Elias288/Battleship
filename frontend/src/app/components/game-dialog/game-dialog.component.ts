@@ -1,6 +1,6 @@
 import { Component, Inject, NgModule } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
-import { GameService } from 'src/app/services/game.service';
+import { MatchService } from 'src/app/services/match.service';
 import { faShareFromSquare } from '@fortawesome/free-regular-svg-icons';
 import { Router } from '@angular/router';
 
@@ -15,7 +15,7 @@ export class GameDialogComponent {
   constructor(
     public dialogRef: MatDialogRef<GameDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    public gameService: GameService,
+    public gameService: MatchService,
     public router: Router,
   ) {}
 

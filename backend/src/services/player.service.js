@@ -4,15 +4,14 @@ const listPlayers = async () => {
     return await playerSchema.find({});
 }
 
-const savePlayer = async (name, uid, email) => {
-    const player = await playerSchema.findOne({ name })
-    if(player != null) {
-        return null
-    }
+const savePlayer = async (name, uid/* , email */) => {
+    const player = await findPlayer(name)
+    if(player != null) return player
+
     const newPlayer = new playerSchema({
         uid,
         name,
-        email,
+        /* email, */
         score: 0,
     })
 

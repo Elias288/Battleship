@@ -18,13 +18,13 @@ export class UserService {
     public afs: AngularFirestore,
     public afAuth: AngularFireAuth,
   ) {
-    this.afAuth.authState.subscribe((user: any) => {
+    /* this.afAuth.authState.subscribe((user: any) => {
       if (user) {
         localStorage.setItem('user', JSON.stringify(user));
       } else {
         localStorage.removeItem('user');
       }
-    });
+    }); */
   }
 
   get user() {
@@ -52,13 +52,25 @@ export class UserService {
   }
 
   googleAuth() {
-    return this.authLogin(new firebase.auth.GoogleAuthProvider()).then((res: any) => {
+    /* return this.authLogin(new firebase.auth.GoogleAuthProvider()).then((res: any) => {
       // console.log("resp : " + res)
       if (res) {
         // console.log("google loging");
         window.location.href="/home";
       }
-    });
+    }); */
+    const uuid = uuidv4()
+    this.temporalLogin("guest" +uuid.substring(0, 5), uuid)
+  }
+
+  temporalLogin(name: string, uuid: string) {
+    localStorage.setItem('user', JSON.stringify(
+      {
+        displayName: name,
+        uid: uuid
+      }
+    ));
+    window.location.href="/home";
   }
 
   authLogin(provider: any): Promise<any> {

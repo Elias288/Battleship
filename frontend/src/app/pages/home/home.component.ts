@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { GameDialogComponent } from 'src/app/components/game-dialog/game-dialog.component';
-import { GameService } from 'src/app/services/game.service';
+import { MatchService } from 'src/app/services/match.service';
 import { SocketioService } from 'src/app/services/socketio.service';
 import { UserService } from '../../services/user.service';
 import {v4 as uuidv4} from 'uuid'
@@ -17,8 +17,9 @@ export class HomeComponent implements OnInit {
   constructor(
     private socketIoService: SocketioService,
     public userService: UserService,
-    public gameService: GameService,
+    public gameService: MatchService,
     public dialog: MatDialog,
+    private matchService: MatchService,
   ) { }
 
   displayedColumns: string[] = ['name', 'score'];
@@ -29,6 +30,7 @@ export class HomeComponent implements OnInit {
     if (!this.socketIoService.connected){
       this.socketIoService.joinBackend()
     }
+    this.matchService.leaveMatch()
   }
 
   openDialog(create: boolean): void {
