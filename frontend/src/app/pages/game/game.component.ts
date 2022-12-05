@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MatchService } from 'src/app/services/match.service';
 import { SocketioService } from 'src/app/services/socketio.service';
@@ -10,6 +10,9 @@ import { UserService } from 'src/app/services/user.service';
   styleUrls: ['./game.component.scss']
 })
 export class GameComponent implements OnInit {
+  @ViewChild('canvas', { static: true }) canvas: any;
+
+  private ctx = CanvasRenderingContext2D;
 
   constructor(
     public socketIoService: SocketioService,
@@ -19,14 +22,17 @@ export class GameComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.socketIoService.isConnected()
+    if (!this.socketIoService.connected){
+      this.socketIoService.joinBackend()
+    }
 
     this.activatedRoute.params.subscribe((params) => {
-      // if (!this.socketIoService.connected){
-      //   this.socketIoService.joinBackend()
-      // }
-      this.socketIoService.connectToMatch(params['roomId'])
+      setTimeout(() => {
+        this.socketIoService.connectToMatch(params['roomId'])
+      }, 1000)
     })
+
+    this.ctx = this.canvas.nativeElement.getContext('2d');
     
   }
 

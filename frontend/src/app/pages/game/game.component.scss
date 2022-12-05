@@ -7,6 +7,22 @@
     .board {
         width: 100%;
         background-color: green;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        .match_info {
+            position: absolute;
+        }
+
+        canvas {
+            --size: 500px;
+
+            background:#3e9bff;
+            width: var(--size);
+            height: var(--size);
+            outline: 1px solid black;
+        }
     }
 
     .info {

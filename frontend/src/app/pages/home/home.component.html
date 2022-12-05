@@ -29,8 +29,8 @@
     </div>
     <div class="home-content">
         <h2>Battleship</h2>
-        <button mat-raised-button color="primary" (click)="openDialog(true)">Create new game</button>
-        <button mat-raised-button color="primary" (click)="openDialog(false)">Join game</button>
+        <button mat-raised-button color="primary" (click)="openDialog(true)" [disabled]="!socketIoService.connected">Create new game</button>
+        <button mat-raised-button color="primary" (click)="openDialog(false)" [disabled]="!socketIoService.connected">Join game</button>
         
     </div>
 </div>

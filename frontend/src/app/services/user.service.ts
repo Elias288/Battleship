@@ -4,7 +4,6 @@ import firebase from 'firebase/compat/app';
 import { v4 as uuidv4 } from 'uuid';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore, AngularFirestoreDocument} from '@angular/fire/compat/firestore';
-import { SocketioService } from './socketio.service';
 import { Player } from '../utils/player';
 
 @Injectable({

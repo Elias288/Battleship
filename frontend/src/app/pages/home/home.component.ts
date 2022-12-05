@@ -15,18 +15,18 @@ import {v4 as uuidv4} from 'uuid'
 export class HomeComponent implements OnInit {
 
   constructor(
-    private socketIoService: SocketioService,
+    public socketIoService: SocketioService,
     public userService: UserService,
     public gameService: MatchService,
     public dialog: MatDialog,
     private matchService: MatchService,
-  ) { }
+  ) {
+  }
 
   displayedColumns: string[] = ['name', 'score'];
   roomId: string = uuidv4().substring(0,8)
 
   ngOnInit(): void {
-    // this.socketIoService.isConnected()
     if (!this.socketIoService.connected){
       this.socketIoService.joinBackend()
     }

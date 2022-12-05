@@ -2,7 +2,6 @@ const {
     setScore,
     savePlayer,
 } = require('../services/player.service')
-const Field = require('./field')
 
 class Player {
     cantShips = 5
@@ -15,7 +14,6 @@ class Player {
         this.uid = uid
         /* this.email = email */
         this.points = 0
-        this.field = new Field(25, 25)
     }
     
     changeScore(score, plus) {

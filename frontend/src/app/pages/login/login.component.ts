@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { SocketioService } from '../../services/socketio.service';
 import { UserService } from '../../services/user.service';
 import { faGoogle } from '@fortawesome/free-brands-svg-icons';
 

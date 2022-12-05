@@ -12,7 +12,7 @@ export class AppComponent {
 
   constructor(
     public userService: UserService,
-    private socketioService: SocketioService,
+    public socketioService: SocketioService,
   ) {}
 
   disconnect() {

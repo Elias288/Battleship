@@ -7,16 +7,17 @@ import { Player } from '../utils/player';
   providedIn: 'root'
 })
 export class MatchService {
-  match: Match | any;
+  matchData: Match | any;
 
   constructor() {}
 
-  joinMatch(match: Match) {
-    localStorage.setItem('match', JSON.stringify(match))
+  get match() {
+    return JSON.parse(localStorage.getItem('match')!);
   }
 
-  setMatch(match: Match) {
-    this.match = match
+  joinMatch(match: Match) {
+    this.matchData = match
+    localStorage.setItem('match', JSON.stringify(match))
   }
 
   leaveMatch() {

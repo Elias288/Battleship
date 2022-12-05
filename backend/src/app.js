@@ -30,6 +30,19 @@ app.get('/', (req, res) => {
 	})
 })
 
+/* TEMP */
+app.get('/players', (req, res) => {
+	res.send(game.players)
+})
+/* TEMP */
+app.get('/matches', (req, res) => {
+	res.send(game.matches)
+})
+/* TEMP */
+app.get('/match/:id', (req, res) => {
+	res.send(game.getMatch(req.params.id))
+})
+
 const whiteList = [ 'http://localhost:4200', '*' ]
 const io = new Server(server, {
 	cors: {
@@ -39,7 +52,6 @@ const io = new Server(server, {
 })
 
 io.on('connection', (socket) => {
-
 	socket.on('join', (data) => join(data))
 	socket.on('isConnected', () => isConnected())
 	socket.on('addToMatch', (data) => addToMatch(data))
@@ -48,9 +60,12 @@ io.on('connection', (socket) => {
 	socket.on('disconnect', () => disconnect())
 
 	const join = async (data) => {
+		console.log('join');
 		const { name, uid/* , email */ } = data
 		
-		let savedPlayer = await savePlayer(name, uid, /* data.email */);
+		// DEVUELVE INFORMACIÓN EL JUGADOR DE LA BD, SI NO ESTÁ GUARDADO LO GUARDA
+		const savedPlayer = await savePlayer(name, uid, /* data.email */);
+		// CREA UNA NUEVA INSTANCIA DEL JUGADOR
 		const newPlayer = new Player(
 			socket.id,
 			savedPlayer._id,
@@ -60,29 +75,43 @@ io.on('connection', (socket) => {
 			/* data.email */
 		)
 		// console.log(newPlayer.name, 'connected')
+
+		// DEVUELVE LA LISTA DE JUGADORES, SI EL JUGADOR NO ESTÁ EN LA LISTA LO AGREGA.
 		const players = game.addPlayer(newPlayer)
+		
+		if(game.players <= 0){
+			socket.emit('error', '')
+			console.log('error')
+			return
+		}
 		socket.emit('playerList', players)
 		socket.broadcast.emit('playerList', players)
-		socket.emit('isConnected', true)
+		socket.emit('joined', '')
 	}
 	const isConnected = () => {
+		console.log('isConnected');
 		const isConnected = game.players.some(p => p.socketId == socket.id)
 		// console.log(player)
 		socket.emit('isConnected', isConnected)
+		return isConnected
 	}
 	const addToMatch = async (data) => {
-		const match = game.addToMatch(data.uid, data.matchId)
+		console.log('addToMatch');
+		const { uid, matchId } = data
+
+		const match = game.addToMatch(uid, matchId)
 		if (match == null) {
 			socket.emit('error', 'match full')
 			return
 		}
-		socket.join(data.matchId)
-		match.isCanStart()
+		socket.join(matchId)
+		match.isCanPutBoats()
 
 		socket.emit('matches', match)
-		socket.broadcast.to(data.matchId).emit('matches', match)
+		socket.broadcast.to(matchId).emit('matches', match)
 	}
 	const removeToMatch = async () => {
+		console.log('removeToMatch');
 		const player = game.getPlayerBySocketId(socket.id)
 		if (!player) {
 			socket.emit('error', 'User not found')
@@ -97,6 +126,7 @@ io.on('connection', (socket) => {
 		socket.to(match.id).emit('matches', match)
 	}
 	const disconnect = () => {
+		console.log('disconnect');
 		const player = game.getPlayerBySocketId(socket.id)
 		
 		if (player != null) {

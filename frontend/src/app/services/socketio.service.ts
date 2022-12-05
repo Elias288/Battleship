@@ -13,7 +13,7 @@ import { UserService } from './user.service';
 })
 export class SocketioService {
   socket: any;
-  connected: boolean = false;
+  connected: Boolean = false;
 
   constructor(
     private userService: UserService,
@@ -35,23 +35,20 @@ export class SocketioService {
     
     this.listen('matches').subscribe((data: Match) => {
       console.log(data);
-      this.matchService.setMatch(data)
       const playerData = this.userService.playerData;
-      console.log(playerData);
+      // console.log(playerData);
 
       this.matchService.joinMatch(data)
     })
 
-    this.listen('isConnected').subscribe((data: boolean) => {
-      this.connected = data
-      // console.log(data)
-      if (!data) {
-        this.location.back()
-      }
+    this.listen('joined').subscribe(() => {
+      this.connected = true
     })
-
     this.listen('canStart').subscribe((data: boolean) => {
       console.log('canconected: ', data)
+    })
+    this.listen('disconnect').subscribe(() => {
+      this.connected = false
     })
   }
 
@@ -75,8 +72,6 @@ export class SocketioService {
       uid: this.userService.user.uid,
       /* email: this.userService.user.email */
     })
-    // console.log('connected')
-    this.connected = true
   }
 
   leaveBackend() {
@@ -85,9 +80,12 @@ export class SocketioService {
   }
 
   connectToMatch(roomId: string) {
+    if(!this.connected){
+      this.location.back()
+    }
     this.socket.emit('addToMatch', { 
+      uid: this.userService.user.uid,
       matchId: roomId,
-      uid: this.userService.user.uid
     })
   }
 
