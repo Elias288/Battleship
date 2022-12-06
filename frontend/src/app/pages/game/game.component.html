@@ -1,34 +1,48 @@
 <div class="match">
-
     <div class="board">
-        <div class="match_info">
-            <!-- <pre>{{ userService.playerData | json }}</pre> -->
-            <pre>{{ matchService.matchData | json }}</pre>
+         <div class="self gameBoard" *ngIf="match">
+            <div *ngFor="let rowSize of gameBoardSize" class="gameBoardRow">
+                <div *ngFor="let columnSize of gameBoardSize" class="gameBoardColumn">
+                    <input type="checkbox" name="" id={{rowSize}}{{columnSize}} [disabled]="!match.canPutBoats">
+                    <label for={{rowSize}}{{columnSize}}>{{rowSize}}{{columnSize}}</label>
+                </div>
+            </div>
         </div>
-
-        <canvas #canvas></canvas>
-    </div>
-    <div class="info">
-        <p>{{matchService.match?.id}}</p>
-
-        <button mat-stroked-button color="primary" (click)="socketIoService.disconnectToMatch()">disconnect</button>
-        <button mat-stroked-button color="primary" [disabled]="!matchService.match?.canPutBoats">Start</button>
-
-        <p>owner: {{matchService.match?.player1?.name}}</p>
-        <p>{{matchService.match?.player2?.name}}</p>
-
-        <!-- <div class="ships"> -->
-        <div class="ships" *ngIf="matchService.match?.canPutBoats">
-            <button>ship1-2</button>
-            <button>ship1-1</button>
-            <button>ship2-1</button>
-            <button>ship2-2</button>
-            <button>ship3-1</button>
-            <button>ship3-2</button>
-            <button>ship4-1</button>
-            <button>ship4-2</button>
-            <button>ship5-1</button>
-            <button>ship5-2</button>
+        <div class="enemy gameBoard" *ngIf="match">
+            <div *ngFor="let rowSize of gameBoardSize" class="gameBoardRow">
+                <div *ngFor="let columnSize of gameBoardSize" class="gameBoardColumn">
+                    <input type="checkbox" name="" id={{rowSize}}{{columnSize}} [disabled]="true">
+                    <label for={{rowSize}}{{columnSize}}>{{rowSize}}{{columnSize}}</label>
+                </div>
+            </div>
         </div>
     </div>
-</div>
+    <div class="info" >
+        <div *ngIf="!match">
+            loading...
+        </div>
+        
+        <div *ngIf="match">
+            <p>{{match.id}}</p>
+    
+            <button mat-stroked-button color="primary" (click)="socketIoService.disconnectToMatch()">disconnect</button>
+            <button mat-stroked-button color="primary" [disabled]="!match.canPutBoats">Start</button>
+    
+             <p>owner: {{match.player1?.name}}</p>
+            <p>{{match.player2?.name}}</p>
+    
+            <div class="ships" *ngIf="match.canPutBoats">
+                <button>ship1-2</button>
+                <button>ship1-1</button>
+                <button>ship2-1</button>
+                <button>ship2-2</button>
+                <button>ship3-1</button>
+                <button>ship3-2</button>
+                <button>ship4-1</button>
+                <button>ship4-2</button>
+                <button>ship5-1</button>
+                <button>ship5-2</button>
+            </div>
+        </div>
+    </div>
+</div> 

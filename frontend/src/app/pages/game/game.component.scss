@@ -8,20 +8,30 @@
         width: 100%;
         background-color: green;
         display: flex;
-        flex-direction: column;
-        align-items: center;
+        flex-direction: row;
+        justify-content: space-around;
 
         .match_info {
             position: absolute;
         }
 
-        canvas {
-            --size: 500px;
+        .gameBoardRow {
+            display: flex;
 
-            background:#3e9bff;
-            width: var(--size);
-            height: var(--size);
-            outline: 1px solid black;
+            .gameBoardColumn {
+                --size: 40px;
+                width: var(--size);
+                height: var(--size);
+                outline: 1px solid;
+                background: #fff;
+                padding: .1rem;
+                border: none;
+                cursor: pointer;
+
+                // input[type=checkbox] {
+                //     display: none;
+                // }
+            }
         }
     }
 

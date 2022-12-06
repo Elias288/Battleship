@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { EventEmitter, Injectable } from '@angular/core';
 import {v4 as uuidv4} from 'uuid'
 import { Match } from '../utils/match';
 import { Player } from '../utils/player';
@@ -7,7 +7,7 @@ import { Player } from '../utils/player';
   providedIn: 'root'
 })
 export class MatchService {
-  matchData: Match | any;
+  matchData: EventEmitter<Match> = new EventEmitter();
 
   constructor() {}
 
@@ -16,8 +16,8 @@ export class MatchService {
   }
 
   joinMatch(match: Match) {
-    this.matchData = match
     localStorage.setItem('match', JSON.stringify(match))
+    this.matchData.emit(match)
   }
 
   leaveMatch() {

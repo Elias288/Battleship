@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { GameDialogComponent } from 'src/app/components/game-dialog/game-dialog.component';
-import { MatchService } from 'src/app/services/match.service';
 import { SocketioService } from 'src/app/services/socketio.service';
 import { UserService } from '../../services/user.service';
 import {v4 as uuidv4} from 'uuid'
@@ -17,9 +16,7 @@ export class HomeComponent implements OnInit {
   constructor(
     public socketIoService: SocketioService,
     public userService: UserService,
-    public gameService: MatchService,
     public dialog: MatDialog,
-    private matchService: MatchService,
   ) {
   }
 
@@ -27,15 +24,10 @@ export class HomeComponent implements OnInit {
   roomId: string = uuidv4().substring(0,8)
 
   ngOnInit(): void {
-    if (!this.socketIoService.connected){
-      this.socketIoService.joinBackend()
-    }
-    this.matchService.leaveMatch()
+    this.socketIoService.joinBackend()
   }
 
   openDialog(create: boolean): void {
-    // this.socketIoService.isConnected()
-
     const dialogRef = this.dialog.open(GameDialogComponent, {
       data: { create, roomId: create ? this.roomId: '' },
     });

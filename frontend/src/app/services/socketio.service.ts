@@ -1,11 +1,10 @@
 import { Location } from '@angular/common';
-import { Injectable } from '@angular/core';
+import { EventEmitter, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { io } from 'socket.io-client';
 import { environment } from 'src/environments/environment';
 import { Match } from '../utils/match';
 import { Player } from '../utils/player';
-import { MatchService } from './match.service';
 import { UserService } from './user.service';
 
 @Injectable({
@@ -13,11 +12,11 @@ import { UserService } from './user.service';
 })
 export class SocketioService {
   socket: any;
-  connected: Boolean = false;
+  connected: EventEmitter<any> = new EventEmitter();
+  matchData: EventEmitter<Match> = new EventEmitter();
 
   constructor(
     private userService: UserService,
-    private matchService: MatchService,
     private location: Location,
   ) {
     this.socket = io(environment.SOCKET_ENDPOINT)
@@ -27,28 +26,25 @@ export class SocketioService {
       console.log(data)
       throw new Error('C - ' + data)
     })
-    
-    this.listen('playerList').subscribe((data: Array<Player>) => {
+
+    this.socket.on('playerList', (res: Array<Player>) => {
       localStorage.removeItem('error')
-      this.userService.setPlayers(data)
+      userService.setPlayers(res)
     })
     
-    this.listen('matches').subscribe((data: Match) => {
-      console.log(data);
-      const playerData = this.userService.playerData;
-      // console.log(playerData);
-
-      this.matchService.joinMatch(data)
+    this.socket.on('matches', (res: Match) => {
+      this.matchData.emit(res)
     })
+    
+    this.socket.on('joined', (res: Boolean) => this.connected.emit(res))
 
-    this.listen('joined').subscribe(() => {
-      this.connected = true
-    })
     this.listen('canStart').subscribe((data: boolean) => {
       console.log('canconected: ', data)
     })
-    this.listen('disconnect').subscribe(() => {
-      this.connected = false
+
+    this.socket.on('disconnect', () => {
+      this.connected.emit(false)
+      userService.setPlayers([])
     })
   }
 
@@ -76,7 +72,6 @@ export class SocketioService {
 
   leaveBackend() {
     this.socket.emit('leave', '')
-    this.connected = false
   }
 
   connectToMatch(roomId: string) {
@@ -90,8 +85,7 @@ export class SocketioService {
   }
 
   disconnectToMatch(){
-    this.socket.emit('removeToMatch', '')
-    this.matchService.leaveMatch()
+    this.socket.emit('removeToMatch', true)
     window.location.href="/home";
   }
 }

@@ -9,11 +9,16 @@ import { SocketioService } from './services/socketio.service';
 })
 export class AppComponent {
   title = 'frontend';
+  connected: boolean = false
 
   constructor(
     public userService: UserService,
     public socketioService: SocketioService,
-  ) {}
+  ) {
+    socketioService.connected.subscribe(res => {
+      this.connected = res
+    })
+  }
 
   disconnect() {
     this.socketioService.leaveBackend()

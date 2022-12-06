@@ -53,10 +53,9 @@ class Game {
 
     removeToMatch(playerId) {
         const match = this.findMatchByPlayerId(playerId)
-        // console.log('match finded', match)
         if (match) {    
             match.removePlayerFromMatch(playerId)
-            match.isCanStart()
+            match.isCanPutBoats()
         }        
         return match
     }
@@ -71,7 +70,7 @@ class Game {
 class Match {
     constructor(id){
         this.id = id
-        this.fieldSize = 25
+        this.fieldSize = 10
         this.player1 = undefined
         this.player2 = undefined
         this.canPutBoats = false
@@ -95,11 +94,10 @@ class Match {
     }
 
     removePlayerFromMatch(player_uid) {
-        console.log(player_uid)
         if (player_uid == this.player1.uid) {
             this.player1 = this.player2
         }
-        this.player2 = null
+        this.player2 = undefined
         return
     }
 
