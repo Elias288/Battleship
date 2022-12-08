@@ -1,11 +1,12 @@
 .home {
     background-color: green;
-    padding-top: 50px;
+    padding: 20px;
     box-sizing: border-box;
-    height: 100vh;
+    height: calc(100vh - 50px);
     display: grid;
     grid-template-columns: auto 35%;
     grid-template-rows: 85px auto;
+    gap: 1rem;
 
     .score {
         height: fit-content;
@@ -13,8 +14,6 @@
 
     .user-list {
         .connected-players {
-            margin: auto;
-            width: 85%;
 
             h2 {
                 background-color: #fff;

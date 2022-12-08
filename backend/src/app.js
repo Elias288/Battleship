@@ -25,15 +25,12 @@ app.get('/', (req, res) => {
     res.send({ name, author, description, license })
 })
 
-/* TEMP */
-app.get('/players', (req, res) => {
-	res.send(game.players)
+app.get('/game', (req, res) => {
+	res.send(game)
 })
-/* TEMP */
 app.get('/matches', (req, res) => {
 	res.send(game.matches)
 })
-/* TEMP */
 app.get('/match/:id', (req, res) => {
 	res.send(game.getMatch(req.params.id))
 })
@@ -56,17 +53,11 @@ io.on('connection', (socket) => {
 
 	const join = async (data) => {
 		const { name, uid/* , email */ } = data
-		
-		// DEVUELVE INFORMACIÓN EL JUGADOR DE LA BD, SI NO ESTÁ GUARDADO LO GUARDA
 		const savedPlayer = await savePlayer(name, uid, /* data.email */);
-		// CREA UNA NUEVA INSTANCIA DEL JUGADOR
 		const newPlayer = new Player( socket.id, savedPlayer._id, savedPlayer.name, savedPlayer.score, uid, /* data.email */)
-
-		// DEVUELVE LA LISTA DE JUGADORES, SI EL JUGADOR NO ESTÁ EN LA LISTA LO AGREGA.
 		const players = game.addPlayer(newPlayer)
-		
-		if(game.players <= 0) {
-			socket.emit('error', '')
+		if(players.length == 0) {
+			socket.emit('error', 'User already register')
 			console.log('error')
 			return
 		}
@@ -86,7 +77,7 @@ io.on('connection', (socket) => {
 
 		const match = game.addToMatch(uid, matchId)
 		if (match == null) {
-			socket.emit('error', 'match full')
+			socket.emit('error', 'Match full')
 			return
 		}
 		console.log('addToMatch');
@@ -103,7 +94,7 @@ io.on('connection', (socket) => {
 		}
 		const match = game.removeToMatch(player.uid)
 		if (!match) {
-			socket.emit('error', 'match not found')
+			socket.emit('error', 'Match not found')
 			return
 		}
 		console.log('removeToMatch');

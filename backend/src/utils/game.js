@@ -5,10 +5,11 @@ class Game {
     }
 
     addPlayer(player) {
-        if (this.players.length == 0 || this.players.some(p => p.uid != player.uid)){
-            this.players.push(player)
+        if (this.players.some(p => p.uid == player.uid)){
+            return []
         }
-
+        
+        this.players.push(player)
         return this.players
     }
 
@@ -55,9 +56,18 @@ class Game {
         const match = this.findMatchByPlayerId(playerId)
         if (match) {    
             match.removePlayerFromMatch(playerId)
+
+            if (match.player1 == undefined) 
+            this.deleteMatch(match.id)
             match.isCanPutBoats()
         }        
         return match
+    }
+
+    deleteMatch(matchId) {
+        const index = this.matches.findIndex((match) => match.id === matchId )
+        if (index !== -1) this.matches.splice(index, 1)[0]
+        return this.matches
     }
 
     removePlayer (id) {

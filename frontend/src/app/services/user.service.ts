@@ -35,7 +35,9 @@ export class UserService {
 
   get isLoggedIn(): boolean {
     const user = JSON.parse(localStorage.getItem('user')!);
-    return user !== null && user.emailVerified !== false ? true : false;
+    // console.log(user !== null);
+    
+    return user !== null /* && user.emailVerified !== false ? true : false; */
   }
 
   get nameLogged():string{

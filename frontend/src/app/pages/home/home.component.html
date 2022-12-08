@@ -3,8 +3,6 @@
         <mat-card-title align="center">Your Score: {{userService.playerData.score}}</mat-card-title>
     </mat-card>
     <div class="user-list">
-        <mat-divider></mat-divider>
-        
         <div class="connected-players" *ngIf="userService.playerlist.length > 0">
             <h2>Connected players</h2>
             <table mat-table [dataSource]="userService.playerlist" class="mat-elevation-z8 user-list-content">

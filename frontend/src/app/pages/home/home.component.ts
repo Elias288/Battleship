@@ -18,13 +18,18 @@ export class HomeComponent implements OnInit {
     public userService: UserService,
     public dialog: MatDialog,
   ) {
+    socketIoService.isConnected()
+    socketIoService.connected.subscribe((res) => {
+      if (!res)
+        this.socketIoService.joinBackend()
+    })
   }
 
   displayedColumns: string[] = ['name', 'score'];
   roomId: string = uuidv4().substring(0,8)
 
   ngOnInit(): void {
-    this.socketIoService.joinBackend()
+    
   }
 
   openDialog(create: boolean): void {

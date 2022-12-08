@@ -37,6 +37,9 @@ export class SocketioService {
     })
     
     this.socket.on('joined', (res: Boolean) => this.connected.emit(res))
+    this.socket.on('isConnected', (res: Boolean) => {
+      this.connected.emit(res)
+    })
 
     this.listen('canStart').subscribe((data: boolean) => {
       console.log('canconected: ', data)
@@ -75,9 +78,9 @@ export class SocketioService {
   }
 
   connectToMatch(roomId: string) {
-    if(!this.connected){
-      this.location.back()
-    }
+    // if(!this.connected){
+    //   this.location.back()
+    // }
     this.socket.emit('addToMatch', { 
       uid: this.userService.user.uid,
       matchId: roomId,
