@@ -12,9 +12,12 @@
                 >
                     {{rowSize}}
                 </label>
+                <div class="imgSize" id="imgSize-{{rowSize}}">
+                    <img src="" alt="" id="img-{{rowSize}}">
+                </div>
             </div>
         </div>
-        <div class="enemy gameBoard" *ngIf="canStart">
+        <div class="enemy gameBoard" *ngIf="match?.canStart">
             <div *ngFor="let rowSize of gameBoardSize" class="gameBoardGrid">
                 <input type="checkbox" id={{rowSize}} [disabled]="true">
                 <label for={{rowSize}}>{{rowSize}}</label>
@@ -30,7 +33,7 @@
             <p>{{match.id}}</p>
     
             <button mat-stroked-button color="primary" (click)="socketIoService.disconnectToMatch()">disconnect</button>
-            <button mat-stroked-button color="primary" [disabled]="!match.canPutBoats">Start</button>
+            <button mat-stroked-button color="primary" [disabled]="!canStart">Start</button>
     
              <p>owner: {{match.player1?.name}}</p>
             <p>{{match.player2?.name}}</p>
@@ -49,37 +52,37 @@
                 </div>
                 <div class="ship">
                     <button (click)="selectShip($event, 3)">
-                        <img src="assets/img/ship.png" alt="ship-2" id="21" class="vertical">
+                        <img src="assets/img/ship.png" alt="ship-2" id="ship-20" class="vertical">
                     </button>
                     <button (click)="selectShip($event, 3)">
-                        <img src="assets/img/ship.png" alt="ship-2" id="22" class="horizontal">
+                        <img src="assets/img/ship.png" alt="ship-2" id="ship-21" class="horizontal">
                     </button>
                     <h3>Ship 2</h3>
                 </div>
                 <div class="ship">
                     <button (click)="selectShip($event, 3)">
-                        <img src="assets/img/submarine.png" alt="ship_3-1" id="31" class="vertical">
+                        <img src="assets/img/submarine.png" alt="ship_3-1" id="ship-30" class="vertical">
                     </button>
                     <button (click)="selectShip($event, 3)">
-                        <img src="assets/img/submarine.png" alt="ship_3-2" id="32" class="horizontal">
+                        <img src="assets/img/submarine.png" alt="ship_3-2" id="ship-31" class="horizontal">
                     </button>
                     <h3>submarine</h3>
                 </div>
                 <div class="ship">
                     <button (click)="selectShip($event, 4)">
-                        <img src="assets/img/aircraft_carrier.png" alt="ship_4-1" id="41" class="vertical">
+                        <img src="assets/img/aircraft_carrier.png" alt="ship_4-1" id="ship-40" class="vertical">
                     </button>
                     <button (click)="selectShip($event, 4)">
-                        <img src="assets/img/aircraft_carrier.png" alt="ship_4-2" id="42" class="horizontal">
+                        <img src="assets/img/aircraft_carrier.png" alt="ship_4-2" id="ship-41" class="horizontal">
                     </button>
                     <h3>Circraft Carrier</h3>
                 </div>
                 <div class="ship">
                     <button (click)="selectShip($event, 4)">
-                        <img src="assets/img/destroyer.png" alt="ship_5-1" id="51" class="vertical">
+                        <img src="assets/img/destroyer.png" alt="ship_5-1" id="ship-50" class="vertical">
                     </button>
                     <button (click)="selectShip($event, 4)">
-                        <img src="assets/img/destroyer.png" alt="ship_5-2" id="52" class="horizontal">
+                        <img src="assets/img/destroyer.png" alt="ship_5-2" id="ship-51" class="horizontal">
                     </button>
                     <h3>Destroyer</h3>
                 </div>

@@ -1,4 +1,4 @@
-import { DOCUMENT } from '@angular/common';
+import { DOCUMENT, JsonPipe } from '@angular/common';
 import { Component, ElementRef, HostListener, Inject, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { stringify } from '@firebase/util';
@@ -12,6 +12,7 @@ interface Ship {
   sizeShip: number
   blocks: Array<string>
   orientation: string
+  img: string
 }
 
 @Component({
@@ -21,7 +22,7 @@ interface Ship {
 })
 export class GameComponent implements OnInit {
   match: Match | undefined;
-  canPutBoats: Boolean = false
+  canPutBoats: Boolean = true
   canStart: Boolean = false
   gameBoardSize: Array<string> = this.fillMatrix(10)
   selectedShip: Ship | undefined
@@ -34,6 +35,7 @@ export class GameComponent implements OnInit {
     public userService: UserService,
     @Inject(DOCUMENT) document: Document,
   ) {
+    this.ships = JSON.parse(window.localStorage.getItem('ships')!) || []
     socketIoService.isConnected()
     socketIoService.connected.subscribe((res) => {
       if (!res)
@@ -46,7 +48,12 @@ export class GameComponent implements OnInit {
     socketIoService.matchData.subscribe(match => {
       this.match = match
       this.gameBoardSize = this.fillMatrix(match.fieldSize)
+      this.canPutBoats = match.canPutBoats
+      setTimeout(() => this.printShips(), 1000)
     })
+    if (this.ships.length == 5) {
+      this.canStart = true
+    }
   }
 
   ngOnInit(): void {
@@ -93,7 +100,8 @@ export class GameComponent implements OnInit {
       selected: true,
       sizeShip: size,
       orientation: className,
-      blocks: []
+      blocks: [],
+      img: src
     }
 
     this.canPutBoats = true
@@ -150,14 +158,18 @@ export class GameComponent implements OnInit {
       
       const boxes = this.getBoxSize(selectedId, sizeShip, orientation)
       const selectedBoxes = this.ships.map(s => s.blocks).flat()
+      if (boxes.length == 0) {
+        return
+      }
 
       if (boxes.some(b => selectedBoxes.find(b2 => b2 == b))) {
         evt.target.click()
         return
       }
 
-      
       const selShip:Ship = this.selectedShip
+      selShip.blocks = boxes
+      selShip.selected = false
       const selShipId = String(selShip.id.split('-').pop())[0]
       
       const isSelShip = this.ships.findIndex(s => {
@@ -170,8 +182,13 @@ export class GameComponent implements OnInit {
       }
 
       this.ships.push(selShip)
+      window.localStorage.setItem('ships', stringify(this.ships))
 
-      this.selectedShip.blocks = boxes
+      if (this.ships.length == 5) {
+        this.canStart = true
+      } else {
+        this.canStart = false
+      }
       this.selectedShip = undefined
       this.followMouseDiv.nativeElement.style.display = 'none'
       this.canPutBoats = false
@@ -183,23 +200,41 @@ export class GameComponent implements OnInit {
   private fillMatrix(amount: number): Array<string> {
     let arr: Array<string> = []
 
-    for (let index =0; index < amount; index++) {
-      for (let index2 =0; index2 < 10; index2++) {
-        arr.push(`${index}${index2}`)
+    for (let index = 0; index < amount; index++) {
+      for (let index2 = 0; index2 < amount; index2++) {
+        arr.push(`${index}${index2}`) 
       }
     }
-
     return arr
   }
 
   private printShips(): void {
     this.cleanBoard(true, false)
-    const selectedBoxes = this.ships.map(s => s.blocks).flat()
-    this.gameBoardSize.forEach(box => {
-      selectedBoxes.forEach(selected => {
-        if (selected === box){
-          const check  = document.getElementById('checkbox-' + selected) as HTMLInputElement | null
-          check?.click()
+    this.ships.forEach(ship => {
+      const { blocks, img, sizeShip, orientation } = ship
+
+      let boxSize = 0, boxSize2 = sizeShip*30-30;
+      blocks.forEach(b => {
+        const check = document.getElementById('checkbox-' + b) as HTMLInputElement | null
+        check?.click()
+        const imagesize = document.getElementById('imgSize-' + b) as HTMLImageElement | null
+        const image = document.getElementById('img-' + b) as HTMLImageElement | null
+        
+        if (image && imagesize) {
+          image.style.display = 'initial'
+          imagesize.style.zIndex = '10'
+          image.setAttribute('src', img)
+          
+          if (orientation === 'vertical') {
+            image.style.top = `-${boxSize}px`
+          }
+          if (orientation === 'horizontal'){
+            imagesize.style.transform = "rotate(90deg)"
+            image.style.top = `-${boxSize2}px`
+          }
+          image.style.height = `${sizeShip*30}px`
+          boxSize += 30
+          boxSize2 -= 30
         }
       })
     })
@@ -209,14 +244,31 @@ export class GameComponent implements OnInit {
     this.gameBoardSize.forEach(box => {
       if (checkbox) {
         const check  = document.getElementById('checkbox-' + box) as HTMLInputElement | null
+        const imagesize = document.getElementById('imgSize-' + box) as HTMLImageElement | null
+        const image = document.getElementById('img-' + box) as HTMLImageElement | null
         if (check?.checked) {
             check.checked = false
           }
+      
+        if (image && imagesize){
+          image.setAttribute('src', '')
+          image.style.display = ''
+          image.style.top = ''
+          image.style.height = ''
+          imagesize.style.zIndex = ''
+          imagesize.style.translate = ''
+        }
       }
-      if (ships) this.ships = []
+      if (ships) {
+        this.canStart = false
+        window.localStorage.removeItem('ships')
+        this.ships = []
+      }
       const label  = document.getElementById('label-' + box) as HTMLInputElement | null
-      if (label != null)
+      
+      if (label){
         label.style.background = ""
+      }
 
     })
   }

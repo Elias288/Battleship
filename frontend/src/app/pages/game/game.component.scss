@@ -1,9 +1,7 @@
 .match {
-    // padding-top: 50px;
-    // box-sizing: border-box;
     display: flex;
-    // max-height: 100vh;
-    // overflow: auto;
+    height: calc(100vh - 50px);
+    min-height: 470px;
 }
 
 .board {
@@ -12,6 +10,7 @@
     display: flex;
     flex-direction: row;
     justify-content: space-around;
+    align-items: center;
 
     .match_info {
         position: absolute;
@@ -25,7 +24,7 @@
         grid-template-columns: repeat(10, auto);
 
         .gameBoardGrid {
-            background: #fff;
+            background: rgb(90, 152, 247);
             position: relative;
             outline: 1px solid;
 
@@ -43,7 +42,22 @@
                 display: none;
         
                 &:checked + label {
-                    background: #000;
+                    display: none;
+                }
+            }
+            .imgSize {
+                width: 100%;
+                height: 100%;
+                position: relative;
+                overflow: hidden;
+
+                img {
+                    display: none;
+                    position: absolute;
+                    object-fit: cover;
+                    width: 100%;
+                    height: 100%;
+                    box-sizing: border-box;
                 }
             }
         }
@@ -56,12 +70,12 @@
     box-sizing: border-box;
 
     .ship {
-        display: flex;
-        align-items: flex-end;
-        width: fit-content;
-        // display: grid;
-        // grid-template-columns: repeat(3, auto);
-        // gap: 10px;
+        display: grid;
+        width: -moz-fit-content;
+        width: 100%;
+        grid-template-columns: 60px 60px auto;
+        gap: 30px;
+        align-items: end;
 
         button {
             --size: 60px;
