@@ -1,10 +1,11 @@
-import { DOCUMENT, JsonPipe } from '@angular/common';
+import { DOCUMENT, JsonPipe, Location } from '@angular/common';
 import { Component, ElementRef, HostListener, Inject, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { stringify } from '@firebase/util';
 import { SocketioService } from 'src/app/services/socketio.service';
 import { UserService } from 'src/app/services/user.service';
 import { Match } from 'src/app/utils/match';
+import { Player } from 'src/app/utils/player';
 
 interface Ship {
   selected: boolean
@@ -21,13 +22,14 @@ interface Ship {
   styleUrls: ['./game.component.scss']
 })
 export class GameComponent implements OnInit {
-  match: Match | undefined;
-  canPutBoats: Boolean = true
-  canStart: Boolean = false
-  gameBoardSize: Array<string> = this.fillMatrix(10)
-  selectedShip: Ship | undefined
-  ships: Array<Ship> = new Array()
   @ViewChild('followMouse') followMouseDiv!: ElementRef<HTMLInputElement>;
+  match: Match | undefined;
+  gameBoardSize: Array<string> = this.fillMatrix(10)
+  ships: Array<Ship> = new Array()
+  selectedShip: Ship | undefined
+  
+  isTurn: Boolean = false
+  canStart: Boolean = false
   
   constructor(
     public socketIoService: SocketioService,
@@ -35,22 +37,35 @@ export class GameComponent implements OnInit {
     public userService: UserService,
     @Inject(DOCUMENT) document: Document,
   ) {
-    this.ships = JSON.parse(window.localStorage.getItem('ships')!) || []
     socketIoService.isConnected()
-    socketIoService.connected.subscribe((res) => {
-      if (!res)
+    socketIoService.connected.subscribe((isConnected: Boolean) => {
+      if (!isConnected)
         socketIoService.joinBackend()
 
-      activatedRoute.params.subscribe((params) => {
-        socketIoService.connectToMatch(params['roomId'])
-      })
+      if (isConnected){
+        activatedRoute.params.subscribe((params) => {
+          socketIoService.connectToMatch(params['roomId'])
+        })
+      }
     })
-    socketIoService.matchData.subscribe(match => {
+    socketIoService.matchData.subscribe((match: Match) => {
       this.match = match
+      
+      if (userService.playerData != undefined){
+        const playerData: Player = userService.playerData
+        const matchPlayer: Player | undefined = match.players.find(p => p.uid === playerData.uid)
+
+        this.isTurn = match.turn == playerData.uid
+        if (matchPlayer) {
+          userService.playerData.canPutBoats = matchPlayer.canPutBoats
+        }
+      }
+
       this.gameBoardSize = this.fillMatrix(match.fieldSize)
-      this.canPutBoats = match.canPutBoats
       setTimeout(() => this.printShips(), 1000)
     })
+
+    this.ships = JSON.parse(window.localStorage.getItem('ships')!) || []
     if (this.ships.length == 5) {
       this.canStart = true
     }
@@ -103,8 +118,6 @@ export class GameComponent implements OnInit {
       blocks: [],
       img: src
     }
-
-    this.canPutBoats = true
   }
 
   public mouseOver(evt: any): void {
@@ -191,7 +204,6 @@ export class GameComponent implements OnInit {
       }
       this.selectedShip = undefined
       this.followMouseDiv.nativeElement.style.display = 'none'
-      this.canPutBoats = false
 
       this.printShips()
     }
@@ -210,16 +222,21 @@ export class GameComponent implements OnInit {
 
   private printShips(): void {
     this.cleanBoard(true, false)
+
     this.ships.forEach(ship => {
       const { blocks, img, sizeShip, orientation } = ship
 
       let boxSize = 0, boxSize2 = sizeShip*30-30;
       blocks.forEach(b => {
         const check = document.getElementById('checkbox-' + b) as HTMLInputElement | null
-        check?.click()
         const imagesize = document.getElementById('imgSize-' + b) as HTMLImageElement | null
         const image = document.getElementById('img-' + b) as HTMLImageElement | null
         
+        if (check){
+          check.disabled = false
+          check.click()
+          check.disabled = true
+        }
         if (image && imagesize) {
           image.style.display = 'initial'
           imagesize.style.zIndex = '10'
@@ -271,5 +288,17 @@ export class GameComponent implements OnInit {
       }
 
     })
+  }
+
+  public start(): void{
+    this.socketIoService.startGame()
+    this.canStart = false
+    
+    if (this.match)
+      this.match.canPutBoats = false
+  }
+
+  public disconnect(): void {
+    window.location.href="/home";
   }
 }

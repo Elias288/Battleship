@@ -20,17 +20,17 @@ export class HomeComponent implements OnInit {
   ) {
     socketIoService.isConnected()
     socketIoService.connected.subscribe((res) => {
-      if (!res)
+      if (!res) {
         this.socketIoService.joinBackend()
+      }
     })
+    window.localStorage.removeItem('ships')
   }
 
   displayedColumns: string[] = ['name', 'score'];
   roomId: string = uuidv4().substring(0,8)
 
-  ngOnInit(): void {
-    
-  }
+  ngOnInit(): void {}
 
   openDialog(create: boolean): void {
     const dialogRef = this.dialog.open(GameDialogComponent, {

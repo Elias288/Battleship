@@ -48,6 +48,8 @@ io.on('connection', (socket) => {
 	socket.on('isConnected', () => isConnected())
 	socket.on('addToMatch', (data) => addToMatch(data))
 	socket.on('removeToMatch', () => removeToMatch())
+	socket.on('startGame', () => startGame())
+	socket.on('changeTurn', () => passTurn())
 	socket.on('leave', () => disconnect())
 	socket.on('disconnect', () => disconnect())
 
@@ -55,13 +57,15 @@ io.on('connection', (socket) => {
 		const { name, uid/* , email */ } = data
 		const savedPlayer = await savePlayer(name, uid, /* data.email */);
 		const newPlayer = new Player( socket.id, savedPlayer._id, savedPlayer.name, savedPlayer.score, uid, /* data.email */)
-		const players = game.addPlayer(newPlayer)
-		if(players.length == 0) {
-			socket.emit('error', 'User already register')
-			console.log('error')
+		
+		if (game.getPlayerByUid(newPlayer.uid)){
+			socket.emit('error', 'join - User already register')
+			// console.log('error')
 			return
 		}
-		console.log('join');
+		const players = game.addPlayer(newPlayer)
+
+		// console.log('join');
 		socket.emit('playerList', players)
 		socket.broadcast.emit('playerList', players)
 		socket.emit('joined', true)
@@ -69,46 +73,113 @@ io.on('connection', (socket) => {
 	const isConnected = () => {
 		const isConnected = game.players.some(p => p.socketId == socket.id)
 		socket.emit('isConnected', isConnected)
-		console.log('isConnected');
+		// console.log('isConnected');
 		return isConnected
 	}
 	const addToMatch = async (data) => {
 		const { uid, matchId } = data
-
-		const match = game.addToMatch(uid, matchId)
-		if (match == null) {
-			socket.emit('error', 'Match full')
+		
+		let match = game.getMatchById(matchId)
+		if (match == undefined) {
+			match = game.addMatch(matchId)
+		}
+		if (match.players.length == 2) {
+			socket.emit('error', 'addToMatch - Match full')
 			return
 		}
-		console.log('addToMatch');
+		const player = game.getPlayerByUid(uid)
+		if (!player) {
+			socket.emit('error', 'addToMatch - User not found')
+			return
+		}
+		match.addPlayerToMatch(player)
+		// match.isCanPutBoats()
+
+		// console.log('addToMatch')
 		socket.join(matchId)
-		match.isCanPutBoats()
 		socket.emit('matches', match)
 		socket.broadcast.to(matchId).emit('matches', match)
 	}
 	const removeToMatch = async () => {
 		const player = game.getPlayerBySocketId(socket.id)
 		if (!player) {
-			socket.emit('error', 'User not found')
+			socket.emit('error', 'removeToMatch - User not found')
 			return
 		}
-		const match = game.removeToMatch(player.uid)
+		const match = game.findMatchByPlayerUid(player.uid)
 		if (!match) {
-			socket.emit('error', 'Match not found')
+			socket.emit('error', 'removeToMatch - Match not found')
 			return
 		}
-		console.log('removeToMatch');
+		match.removePlayerFromMatch(player.uid)
+		// match.isCanPutBoats()
+		if (match.players.length == 0) {
+			game.deleteMatch(match.id)
+		}
+		// console.log('removeToMatch');
 		socket.emit('matches', match)
 		socket.to(match.id).emit('matches', match)
+	}
+	const startGame = () => {
+		const player = game.getPlayerBySocketId(socket.id)
+		if (!player) {
+			socket.emit('error', 'startGame - User not found')
+			return
+		}
+		const match = game.findMatchByPlayerUid(player.uid)
+		if (!match) {
+			socket.emit('error', 'startGame - Match not found')
+			return
+		}
+		player.changeCanStart(true)
+		player.changeCanPutBoats(false)
+		const canStart = match.isCanStart()
+		
+		if (canStart) {
+			match.setFirstTurn()
+		}
+
+		// console.log('startGame');
+		socket.emit('matches', match)
+		socket.broadcast.to(match.id).emit('matches', match)
+	}
+	const passTurn = () => {
+		const player = game.getPlayerBySocketId(socket.id)
+		if (!player) {
+			socket.emit('error', 'startGame - User not found')
+			return
+		}
+		const match = game.findMatchByPlayerUid(player.uid)
+		if (!match) {
+			socket.emit('error', 'startGame - Match not found')
+			return
+		}
+
+		if (!match.isCanStart()) {
+			return
+		}
+
+		// console.log('passTurn')
+		match.changeTurn(player.uid)
+		socket.emit('matches', match)
+		socket.broadcast.to(match.id).emit('matches', match)
 	}
 	const disconnect = () => {
 		const player = game.getPlayerBySocketId(socket.id)
 		
 		if (player != null) {
-			const match = game.removeToMatch(player.uid)
-			if (match) socket.to(match.id).emit('matches', match)
+			const match = game.findMatchByPlayerUid(player.uid)
+			player.changeCanPutBoats(false)
+			if (match){
+				match.removePlayerFromMatch(player.uid)
+				// match.isCanPutBoats()
+				if (match.players.length == 0) {
+					game.deleteMatch(match.id)
+				}
+				socket.to(match.id).emit('matches', match)
+			}
 			
-			console.log('disconnect');
+			// console.log('disconnect');
 			const players = game.removePlayer(player.id)
 			socket.broadcast.emit('playerList', players)
 		}

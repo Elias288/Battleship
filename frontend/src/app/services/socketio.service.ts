@@ -17,13 +17,12 @@ export class SocketioService {
 
   constructor(
     private userService: UserService,
-    private location: Location,
   ) {
     this.socket = io(environment.SOCKET_ENDPOINT)
 
-    this.listen('error').subscribe((data: Array<any>) => {
-      localStorage.setItem('error', JSON.stringify(data))
-      console.log(data)
+    this.socket.on('error', (data: Array<any>) => {
+      window.localStorage.removeItem('ships')
+      window.localStorage.setItem('error', JSON.stringify(data))
       throw new Error('C - ' + data)
     })
 
@@ -32,18 +31,11 @@ export class SocketioService {
       userService.setPlayers(res)
     })
     
-    this.socket.on('matches', (res: Match) => {
-      this.matchData.emit(res)
-    })
+    this.socket.on('matches', (res: Match) => this.matchData.emit(res))
     
     this.socket.on('joined', (res: Boolean) => this.connected.emit(res))
-    this.socket.on('isConnected', (res: Boolean) => {
-      this.connected.emit(res)
-    })
 
-    this.listen('canStart').subscribe((data: boolean) => {
-      console.log('canconected: ', data)
-    })
+    this.socket.on('isConnected', (res: Boolean) => this.connected.emit(res))
 
     this.socket.on('disconnect', () => {
       this.connected.emit(false)
@@ -51,19 +43,11 @@ export class SocketioService {
     })
   }
 
-  private listen(eventName: string): Observable<any> {
-    return new Observable(subscriber => {
-      this.socket.on(eventName, (data: any) => {
-        subscriber.next(data)
-      })
-    })
-  }
-
-  isConnected() {
+  public isConnected() {
     this.socket.emit('isConnected', null)
   }
   
-  joinBackend() {
+  public joinBackend() {
     localStorage.removeItem('error')
 
     this.socket.emit('join', { 
@@ -73,22 +57,22 @@ export class SocketioService {
     })
   }
 
-  leaveBackend() {
+  public leaveBackend() {
     this.socket.emit('leave', '')
   }
 
-  connectToMatch(roomId: string) {
-    // if(!this.connected){
-    //   this.location.back()
-    // }
+  public connectToMatch(roomId: string) {
     this.socket.emit('addToMatch', { 
       uid: this.userService.user.uid,
       matchId: roomId,
     })
   }
 
-  disconnectToMatch(){
-    this.socket.emit('removeToMatch', true)
-    window.location.href="/home";
+  public startGame() {
+    this.socket.emit('startGame', null)
+  }
+
+  public changeTurn() {
+    this.socket.emit('changeTurn', null)
   }
 }

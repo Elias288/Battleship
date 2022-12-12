@@ -6,9 +6,10 @@ export interface Player {
     name: string
     email: string
 
-    score: number
-    points: number
-
-    field: Array<number>
+    score: Number
+    
     cantShips: number
+    points: number
+    canStart: boolean
+    canPutBoats: boolean
 }

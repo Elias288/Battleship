@@ -2,7 +2,7 @@
     <div class="board">
          <div class="self gameBoard" *ngIf="match">
             <div *ngFor="let rowSize of gameBoardSize" class="gameBoardGrid">
-                <input type="checkbox" id=checkbox-{{rowSize}} [disabled]="!canPutBoats">
+                <input type="checkbox" id=checkbox-{{rowSize}} [disabled]="!match.canPutBoats">
                 <label
                     for=checkbox-{{rowSize}}
                     id=label-{{rowSize}} 
@@ -32,15 +32,34 @@
         <div *ngIf="match">
             <p>{{match.id}}</p>
     
-            <button mat-stroked-button color="primary" (click)="socketIoService.disconnectToMatch()">disconnect</button>
-            <button mat-stroked-button color="primary" [disabled]="!canStart">Start</button>
-    
-             <p>owner: {{match.player1?.name}}</p>
-            <p>{{match.player2?.name}}</p>
+            <button 
+                mat-stroked-button 
+                color="primary" 
+                (click)="disconnect()">
+                    disconnect
+            </button>
+            <button 
+                mat-stroked-button 
+                color="primary" 
+                [disabled]="!canStart" 
+                (click)="start()">
+                    Start
+            </button>
+            <button 
+                mat-stroked-button 
+                color="primary" 
+                [disabled]="!isTurn" 
+                (click)="socketIoService.changeTurn()">
+                    Pass Turn (temp)
+            </button>
 
-            <button (click)="cleanBoard(true, true)">Clean</button>
+            <div class="players">
+                <p *ngFor="let player of match.players">{{player.name}}</p>
+            </div>
+
+            <button *ngIf="userService.playerData?.canPutBoats" (click)="cleanBoard(true, true)">Clean</button>
     
-            <div class="ships" *ngIf="match.canPutBoats">
+            <div class="ships" *ngIf="userService.playerData?.canPutBoats">
                 <div class="ship">
                     <button (click)="selectShip($event, 3)">
                         <img src="assets/img/ship.png" alt="ship-1" id="ship-10" class="vertical">
@@ -86,6 +105,21 @@
                     </button>
                     <h3>Destroyer</h3>
                 </div>
+            </div>
+ 
+            <div class="attacks" *ngIf="match.turn">
+                <div class="attack1">
+                    <button>attack 1</button>
+                </div>
+                <!-- <div class="attack2">
+                    <button>attack 2</button>
+                </div>
+                <div class="attack3">
+                    <button>attack 3</button>
+                </div>
+                <div class="attack4">
+                    <button>attack 4</button>
+                </div> -->
             </div>
         </div>
     </div>
