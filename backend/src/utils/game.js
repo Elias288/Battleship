@@ -1,3 +1,5 @@
+const Match = require('./match')
+
 class Game {
     constructor() {
         this.players = []
@@ -41,51 +43,6 @@ class Game {
         const index = this.players.findIndex((player) => player.id === id )
         if (index !== -1) this.players.splice(index, 1)[0]
         return this.players
-    }
-}
-
-class Match {
-    constructor(id){
-        this.id = id
-        this.fieldSize = 10
-        this.players = []
-        this.turn = undefined
-    }
-
-    addPlayerToMatch(player) {
-        if (this.players.length <= 2) {
-            player.changeCanPutBoats(true)
-            this.players.push(player)
-        }
-    }
-
-    removePlayerFromMatch(playerUid){
-        const player = this.players.findIndex(p => p.uid == playerUid)
-        if (player !== -1) this.players.splice(player, 1)[0]
-    }
-
-    findPlayer(playerUid) {
-        return this.players.find(p => p?.uid == playerUid)
-    }
-
-    isCanStart() {
-        if (this.players.length == 2) {
-            return this.players[0].canStart && this.players[1].canStart
-        }
-        this.turn = undefined
-        return false
-    }
-
-    setFirstTurn() {
-        const randomValue = Math.floor(Math.random() * 2)
-        this.turn = this.players[randomValue].uid
-    }
-
-    changeTurn(playerUid) {
-        if (this.turn == playerUid) {
-            const otherPlayer = this.players.find(p => p.uid != this.turn)
-            this.turn = otherPlayer.uid
-        }
     }
 }
 

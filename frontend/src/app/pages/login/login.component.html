@@ -7,10 +7,9 @@
             Login
         </button>
 
-        <div class="temporal">
-            <input type="text" name="displayName" id="" [(ngModel)]="name" #textarea>
-            <input type="text" name="uuid" id="" [(ngModel)]="uuid">
-            <button (click)="loginTemporal()">login</button>
+        <div class="anonimusPlayerLoguin">
+            <input type="text" name="displayName" id="" [(ngModel)]="name" #textarea placeholder="Name">
+            <button (click)="anonimusPlayerLogin()">login</button>
         </div>
     </div>
 </div>

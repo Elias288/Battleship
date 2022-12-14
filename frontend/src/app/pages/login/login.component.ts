@@ -11,7 +11,6 @@ import { faGoogle } from '@fortawesome/free-brands-svg-icons';
 export class LoginComponent implements OnInit {
   faGoogle = faGoogle;
   name: string = '';
-  uuid: string = '';
 
   constructor(
     private router: Router,
@@ -26,7 +25,7 @@ export class LoginComponent implements OnInit {
     }
   }
 
-  loginTemporal(): void {
-    this.userService.temporalLogin(this.name, this.uuid)
+  anonimusPlayerLogin(): void {
+    this.userService.anonimusLogin(this.name)
   }
 }

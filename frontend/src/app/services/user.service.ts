@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import firebase from 'firebase/compat/app';
-import { v4 as uuidv4 } from 'uuid';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore, AngularFirestoreDocument} from '@angular/fire/compat/firestore';
 import { Player } from '../utils/player';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable({
   providedIn: 'root'
@@ -17,13 +17,13 @@ export class UserService {
     public afs: AngularFirestore,
     public afAuth: AngularFireAuth,
   ) {
-    /* this.afAuth.authState.subscribe((user: any) => {
+    this.afAuth.authState.subscribe((user: any) => {
       if (user) {
         localStorage.setItem('user', JSON.stringify(user));
-      } else {
+      } /* else {
         localStorage.removeItem('user');
-      }
-    }); */
+      } */
+    });
   }
 
   get user() {
@@ -35,9 +35,8 @@ export class UserService {
 
   get isLoggedIn(): boolean {
     const user = JSON.parse(localStorage.getItem('user')!);
-    // console.log(user !== null);
     
-    return user !== null /* && user.emailVerified !== false ? true : false; */
+    return user !== null && user.emailVerified !== false ? true : false;
   }
 
   get nameLogged():string{
@@ -53,22 +52,20 @@ export class UserService {
   }
 
   googleAuth() {
-    /* return this.authLogin(new firebase.auth.GoogleAuthProvider()).then((res: any) => {
-      // console.log("resp : " + res)
+    return this.authLogin(new firebase.auth.GoogleAuthProvider()).then((res: any) => {
       if (res) {
-        // console.log("google loging");
         window.location.href="/home";
       }
-    }); */
-    const uuid = uuidv4()
-    this.temporalLogin("guest" +uuid.substring(0, 5), uuid)
+    });
   }
 
-  temporalLogin(name: string, uuid: string) {
+  anonimusLogin(name: string) {
+    const uuid = uuidv4()
     localStorage.setItem('user', JSON.stringify(
       {
         displayName: name,
-        uid: uuid
+        uid: uuid,
+        email: ""
       }
     ));
     window.location.href="/home";
@@ -80,9 +77,6 @@ export class UserService {
       .then((result: any) => {
         return result.user
       })
-      // .catch((error: any) => {
-      //   console.error(error);
-      // });
   }
 
   signOut() {

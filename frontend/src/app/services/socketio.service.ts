@@ -14,33 +14,26 @@ export class SocketioService {
   socket: any;
   connected: EventEmitter<any> = new EventEmitter();
   matchData: EventEmitter<Match> = new EventEmitter();
+  attack: EventEmitter<string> = new EventEmitter();
 
   constructor(
     private userService: UserService,
   ) {
     this.socket = io(environment.SOCKET_ENDPOINT)
 
-    this.socket.on('error', (data: Array<any>) => {
-      window.localStorage.removeItem('ships')
-      window.localStorage.setItem('error', JSON.stringify(data))
-      throw new Error('C - ' + data)
-    })
+    this.socket.on('error', (data: Array<any>) => this.error(data))
 
-    this.socket.on('playerList', (res: Array<Player>) => {
-      localStorage.removeItem('error')
-      userService.setPlayers(res)
-    })
+    this.socket.on('playerList', (res: Array<Player>) => this.playerList(res))
     
     this.socket.on('matches', (res: Match) => this.matchData.emit(res))
     
     this.socket.on('joined', (res: Boolean) => this.connected.emit(res))
 
+    this.socket.on('attack', (data: any) => this.attack.emit(data))
+
     this.socket.on('isConnected', (res: Boolean) => this.connected.emit(res))
 
-    this.socket.on('disconnect', () => {
-      this.connected.emit(false)
-      userService.setPlayers([])
-    })
+    this.socket.on('disconnect', () => this.disconnect())
   }
 
   public isConnected() {
@@ -49,11 +42,12 @@ export class SocketioService {
   
   public joinBackend() {
     localStorage.removeItem('error')
+    const {displayName, uid, email} = this.userService.user
 
     this.socket.emit('join', { 
-      name: this.userService.user.displayName,
-      uid: this.userService.user.uid,
-      /* email: this.userService.user.email */
+      name: displayName,
+      uid,
+      email
     })
   }
 
@@ -74,5 +68,29 @@ export class SocketioService {
 
   public changeTurn() {
     this.socket.emit('changeTurn', null)
+  }
+
+  public hit(id: string) {
+    this.socket.emit('attack', id)
+  }
+
+  public hitResponse(id: string, status: boolean, ownerId: string) {
+    this.socket.emit('hitStatus', {id, status, ownerId})
+  }
+
+  private playerList(res: Array<Player>) {
+    localStorage.removeItem('error')
+    this.userService.setPlayers(res)
+  }
+
+  private error(data: Array<any>) {
+    window.localStorage.removeItem('ships')
+    window.localStorage.setItem('error', JSON.stringify(data))
+    throw new Error('C - ' + data)
+  }
+  
+  private disconnect() {
+    this.connected.emit(false)
+    this.userService.setPlayers([])
   }
 }

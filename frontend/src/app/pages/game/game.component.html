@@ -1,28 +1,27 @@
 <div class="match">
     <div class="board">
-         <div class="self gameBoard" *ngIf="match">
-            <div *ngFor="let rowSize of gameBoardSize" class="gameBoardGrid">
-                <input type="checkbox" id=checkbox-{{rowSize}} [disabled]="!match.canPutBoats">
-                <label
-                    for=checkbox-{{rowSize}}
-                    id=label-{{rowSize}} 
-                    (mouseover)="mouseOver($event)"
-                    (mouseout)="cleanBoard(false, false)"
-                    (click)="putShip($event)"
-                >
-                    {{rowSize}}
-                </label>
-                <div class="imgSize" id="imgSize-{{rowSize}}">
-                    <img src="" alt="" id="img-{{rowSize}}">
-                </div>
-            </div>
+        <div class="yourBoard">
+            <h2>Your</h2>
+            <div class="self gameBoard" *ngIf="match">
+               <div *ngFor="let rowSize of gameBoardSize" class="gameBoardGrid">
+                   <button id="self_button-{{rowSize}}" (click)="putShip($event)" (mouseover)="mouseOver($event)" (mouseout)="cleanBoard(false, false)">{{rowSize}}</button>
+                   <div class="imgSize" id="self_imgSize-{{rowSize}}">
+                       <img src="" alt="" id="self_img-{{rowSize}}">
+                   </div> 
+               </div>
+           </div>
         </div>
-        <div class="enemy gameBoard" *ngIf="match?.canStart">
-            <div *ngFor="let rowSize of gameBoardSize" class="gameBoardGrid">
-                <input type="checkbox" id={{rowSize}} [disabled]="true">
-                <label for={{rowSize}}>{{rowSize}}</label>
-            </div>
-        </div> 
+        <div class="enemyBoard">
+            <h2>Enemy</h2>
+            <div class="enemy gameBoard">
+                <div *ngFor="let rowSize of gameBoardSize" class="gameBoardGrid">
+                    <button id="enemy_button-{{rowSize}}" (click)="attack($event)" [disabled]="!strike?.selected">{{rowSize}}</button>
+                    <div class="imgSize" id="enemy_imgSize-{{rowSize}}">
+                        <img src="" alt="" id="enemy_img-{{rowSize}}">
+                    </div>
+                </div>
+            </div> 
+        </div>
     </div>
     <div class="info" >
         <div *ngIf="!match">
@@ -30,7 +29,14 @@
         </div>
         
         <div *ngIf="match">
-            <p>{{match.id}}</p>
+            <div>
+                <h1>Match ID</h1>
+                <p>{{match.id}}</p>
+            </div>
+            <div class="players">
+                <h2>Players</h2>
+                <p *ngFor="let player of match.players">{{player.name}}</p>
+            </div>
     
             <button 
                 mat-stroked-button 
@@ -45,71 +51,68 @@
                 (click)="start()">
                     Start
             </button>
-            <button 
-                mat-stroked-button 
-                color="primary" 
-                [disabled]="!isTurn" 
-                (click)="socketIoService.changeTurn()">
-                    Pass Turn (temp)
-            </button>
-
-            <div class="players">
-                <p *ngFor="let player of match.players">{{player.name}}</p>
-            </div>
-
-            <button *ngIf="userService.playerData?.canPutBoats" (click)="cleanBoard(true, true)">Clean</button>
-    
+            
             <div class="ships" *ngIf="userService.playerData?.canPutBoats">
+                <button mat-stroked-button (click)="cleanBoard(true, true)" [disabled]="match.players.length != 2">Clean</button>
                 <div class="ship">
-                    <button (click)="selectShip($event, 3)">
+                    <button (click)="selectShip($event, 3)" [disabled]="match.players.length != 2">
                         <img src="assets/img/ship.png" alt="ship-1" id="ship-10" class="vertical">
                     </button>
-                    <button (click)="selectShip($event, 3)">
+                    <button (click)="selectShip($event, 3)" [disabled]="match.players.length != 2">
                         <img src="assets/img/ship.png" alt="ship-1" id="ship-11" class="horizontal">
                     </button>
                     <h3>Ship 1</h3>
                 </div>
                 <div class="ship">
-                    <button (click)="selectShip($event, 3)">
+                    <button (click)="selectShip($event, 3)" [disabled]="match.players.length != 2">
                         <img src="assets/img/ship.png" alt="ship-2" id="ship-20" class="vertical">
                     </button>
-                    <button (click)="selectShip($event, 3)">
+                    <button (click)="selectShip($event, 3)" [disabled]="match.players.length != 2">
                         <img src="assets/img/ship.png" alt="ship-2" id="ship-21" class="horizontal">
                     </button>
                     <h3>Ship 2</h3>
                 </div>
                 <div class="ship">
-                    <button (click)="selectShip($event, 3)">
+                    <button (click)="selectShip($event, 3)" [disabled]="match.players.length != 2">
                         <img src="assets/img/submarine.png" alt="ship_3-1" id="ship-30" class="vertical">
                     </button>
-                    <button (click)="selectShip($event, 3)">
+                    <button (click)="selectShip($event, 3)" [disabled]="match.players.length != 2">
                         <img src="assets/img/submarine.png" alt="ship_3-2" id="ship-31" class="horizontal">
                     </button>
                     <h3>submarine</h3>
                 </div>
                 <div class="ship">
-                    <button (click)="selectShip($event, 4)">
+                    <button (click)="selectShip($event, 4)" [disabled]="match.players.length != 2">
                         <img src="assets/img/aircraft_carrier.png" alt="ship_4-1" id="ship-40" class="vertical">
                     </button>
-                    <button (click)="selectShip($event, 4)">
+                    <button (click)="selectShip($event, 4)" [disabled]="match.players.length != 2">
                         <img src="assets/img/aircraft_carrier.png" alt="ship_4-2" id="ship-41" class="horizontal">
                     </button>
                     <h3>Circraft Carrier</h3>
                 </div>
                 <div class="ship">
-                    <button (click)="selectShip($event, 4)">
+                    <button (click)="selectShip($event, 4)" [disabled]="match.players.length != 2">
                         <img src="assets/img/destroyer.png" alt="ship_5-1" id="ship-50" class="vertical">
                     </button>
-                    <button (click)="selectShip($event, 4)">
+                    <button (click)="selectShip($event, 4)" [disabled]="match.players.length != 2">
                         <img src="assets/img/destroyer.png" alt="ship_5-2" id="ship-51" class="horizontal">
                     </button>
                     <h3>Destroyer</h3>
                 </div>
             </div>
  
+            <div *ngIf="!userService.playerData?.canPutBoats && !match.turn">
+                <h2>
+                    waiting...
+                </h2>
+            </div>
+
             <div class="attacks" *ngIf="match.turn">
+                <h3 *ngIf="isTurn">Your Turn</h3>
                 <div class="attack1">
-                    <button>attack 1</button>
+                    <button (click)="selectAttack($event)" [disabled]="!isTurn">
+                        <img src="assets/img/Attack_1.png" alt="attact_1" id="attack-1">
+                    </button>
                 </div>
                 <!-- <div class="attack2">
                     <button>attack 2</button>

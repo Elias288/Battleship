@@ -1,16 +1,15 @@
 .match {
     display: flex;
     height: calc(100vh - 50px);
-    min-height: 470px;
+    min-height: 700px;
 }
 
 .board {
     width: 100%;
     background-color: green;
     display: flex;
-    flex-direction: row;
-    justify-content: space-around;
     align-items: center;
+    justify-content: center;
 
     .match_info {
         position: absolute;
@@ -20,6 +19,7 @@
         --size: 300px;
         width: var(--size);
         height: var(--size);
+        margin: .5rem;
         display: grid;
         grid-template-columns: repeat(10, auto);
 
@@ -28,23 +28,6 @@
             position: relative;
             outline: 1px solid;
 
-            label {
-                --size: 100%;
-                display: block;
-                width: var(--size);
-                height: var(--size);
-                padding: .1rem;
-                box-sizing: border-box;
-            }
-            input[type=checkbox] {
-                position: absolute;
-                left: 20px;
-                display: none;
-        
-                &:checked + label {
-                    display: none;
-                }
-            }
             .imgSize {
                 width: 100%;
                 height: 100%;
@@ -60,6 +43,16 @@
                     box-sizing: border-box;
                 }
             }
+            button {
+                width: 100%;
+                height: 100%;
+                background: none;
+                border: none;
+                
+                &:not(:disabled) {
+                    cursor: pointer;
+                }
+            }
         }
     }
 }
@@ -69,21 +62,35 @@
     padding: 1rem;
     box-sizing: border-box;
 
+    .ships {
+        width: 100%;
+
+        * {
+            margin-bottom: .5rem;
+        }
+    }
+
     .ship {
         display: grid;
-        width: -moz-fit-content;
         width: 100%;
         grid-template-columns: 60px 60px auto;
-        gap: 30px;
+        gap: 10px;
         align-items: end;
+        padding: 0 1.5rem;
+        box-sizing: border-box;
 
         button {
             --size: 60px;
             width: var(--size);
             height: var(--size);
-            background: none;
             border: none;
-            cursor: grab;
+            background: none;
+            filter: drop-shadow(2px 4px 6px black);
+            
+            &:not(:disabled){
+                cursor: grab;
+                filter: none;
+            }
 
             img {
                 width: 100%;
@@ -93,6 +100,36 @@
 
             .horizontal {
                 transform: rotate(90deg);
+            }
+        }
+    }
+
+    .attacks {
+        min-height: 300px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem 0;
+        box-sizing: border-box;
+    
+        .attack1 {
+            button:disabled {
+                background: rgb(255, 0, 0);
+            }
+            button {
+                background: rgb(0 203 0);
+                padding: 0.5rem;
+                box-sizing: border-box;
+                border-radius: 10px;
+                border: 1px solid;
+                filter: drop-shadow(2px 2px 0px black);
+            }
+
+            img {
+                --size: 50px;
+                width: var(--size);
+                height: var(--size);
+                cursor: pointer;
             }
         }
     }

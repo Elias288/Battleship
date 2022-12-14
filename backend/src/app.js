@@ -9,7 +9,8 @@ const { author, license, name, description } = require('../package.json');
 require('./services/bd.service')
 const Player = require('./utils/player')
 const Game = require('./utils/game')
-const { savePlayer, findPlayer } = require('./services/player.service')
+const Match = require('./utils/match')
+const { savePlayer } = require('./services/player.service')
 
 const app = express()
 const server = http.createServer(app)
@@ -47,20 +48,22 @@ io.on('connection', (socket) => {
 	socket.on('join', (data) => join(data))
 	socket.on('isConnected', () => isConnected())
 	socket.on('addToMatch', (data) => addToMatch(data))
-	socket.on('removeToMatch', () => removeToMatch())
 	socket.on('startGame', () => startGame())
+	socket.on('attack', (id) => sendAttack(id))
+	socket.on('hitStatus', (attack) => hitStatus(attack))
 	socket.on('changeTurn', () => passTurn())
+	
+	socket.on('removeToMatch', () => removeToMatch())
 	socket.on('leave', () => disconnect())
 	socket.on('disconnect', () => disconnect())
 
 	const join = async (data) => {
-		const { name, uid/* , email */ } = data
-		const savedPlayer = await savePlayer(name, uid, /* data.email */);
-		const newPlayer = new Player( socket.id, savedPlayer._id, savedPlayer.name, savedPlayer.score, uid, /* data.email */)
+		const { name, uid, email } = data
+		const savedPlayer = await savePlayer(name, uid, data.email);
+		const newPlayer = new Player( socket.id, savedPlayer._id, savedPlayer.name, savedPlayer.score, uid, data.email)
 		
 		if (game.getPlayerByUid(newPlayer.uid)){
 			socket.emit('error', 'join - User already register')
-			// console.log('error')
 			return
 		}
 		const players = game.addPlayer(newPlayer)
@@ -93,7 +96,6 @@ io.on('connection', (socket) => {
 			return
 		}
 		match.addPlayerToMatch(player)
-		// match.isCanPutBoats()
 
 		// console.log('addToMatch')
 		socket.join(matchId)
@@ -112,13 +114,48 @@ io.on('connection', (socket) => {
 			return
 		}
 		match.removePlayerFromMatch(player.uid)
-		// match.isCanPutBoats()
 		if (match.players.length == 0) {
 			game.deleteMatch(match.id)
 		}
+
 		// console.log('removeToMatch');
 		socket.emit('matches', match)
 		socket.to(match.id).emit('matches', match)
+	}
+	const sendAttack = (id) => {
+		// THE ATTACKER SENDS THE ATTACKED THE ATTACK POSITION, THE ATTACKER RESPONSES AND IS SAVED IN MATCH
+		const player = game.getPlayerBySocketId(socket.id)
+		if (!player) {
+			socket.emit('error', 'attack - User not found')
+			return
+		}
+		const match = game.findMatchByPlayerUid(player.uid)
+		if (!match) {
+			socket.emit('error', 'startGame - Match not found')
+			return
+		}
+		// console.log('hit');
+		socket.broadcast.to(match.id).emit('attack', {id, owner: player.uid})
+	}
+	const hitStatus = (attack) => {
+		const {id, status, ownerId} = attack
+		// THE ATTACKER SENDS THE ATTACKED THE ATTACK POSITION, THE ATTACKER RESPONSES AND IS SAVED IN MATCH
+		const player = game.getPlayerBySocketId(socket.id)
+		if (!player) {
+			socket.emit('error', 'attack - User not found')
+			return
+		}
+		const match = game.findMatchByPlayerUid(player.uid)
+		if (!match) {
+			socket.emit('error', 'startGame - Match not found')
+			return
+		}
+		
+		match.addAttack(id, ownerId, status)
+
+		// console.log('hitResponse');
+		socket.emit('matches', match)
+		socket.broadcast.to(match.id).emit('matches', match)
 	}
 	const startGame = () => {
 		const player = game.getPlayerBySocketId(socket.id)
@@ -159,8 +196,8 @@ io.on('connection', (socket) => {
 			return
 		}
 
-		// console.log('passTurn')
 		match.changeTurn(player.uid)
+		// console.log('passTurn')
 		socket.emit('matches', match)
 		socket.broadcast.to(match.id).emit('matches', match)
 	}
@@ -172,7 +209,6 @@ io.on('connection', (socket) => {
 			player.changeCanPutBoats(false)
 			if (match){
 				match.removePlayerFromMatch(player.uid)
-				// match.isCanPutBoats()
 				if (match.players.length == 0) {
 					game.deleteMatch(match.id)
 				}
