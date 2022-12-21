@@ -14,6 +14,7 @@ interface Ship {
     blocks: Array<string>
     orientation: string
     img: string
+    destroyed: boolean
 }
 
 @Component({
@@ -24,6 +25,7 @@ interface Ship {
 export class GameComponent implements OnInit {
     @ViewChild('followMouse') followMouseDiv!: ElementRef<HTMLInputElement>;
     match: Match | undefined;
+    // tempMatch: any
     gameBoardSize: Array<string> = this.fillMatrix(10)
     
     ships: Array<Ship> = new Array()
@@ -53,6 +55,23 @@ export class GameComponent implements OnInit {
         socketIoService.matchData.subscribe((match: Match) => {
             this.match = match
             
+            // const tempPlayers = match.players.map(p => {
+            //     return {
+            //         cantShips: p.cantShips,
+            //         name: p.name,
+            //         uid: p.uid,
+            //         canPutShips: p.canPutBoats,
+            //         canStart: p.canStart,
+            //         points: p.points,
+            //     }
+            // })
+            // this.tempMatch = {
+            //     turn: match.turn,
+            //     winner: match.winner,
+            //     tempPlayers,
+            //     attacks: match.attacks
+            // }
+            
             if (userService.playerData != undefined) {
                 const playerData: Player = userService.playerData
                 const matchPlayer: Player | undefined = match.players.find(p => p.uid === playerData.uid)
@@ -73,8 +92,16 @@ export class GameComponent implements OnInit {
             setTimeout(() => this.printShips(), 1000)
         })
         socketIoService.attack.subscribe((data: any) => {
+            const { id, owner } = data
             const shipsBoxes = this.ships.map(s => s.blocks).flat()
-            socketIoService.hitResponse(data.id, shipsBoxes.some(sb => sb === data.id), data.owner)
+
+            const status = shipsBoxes.some(sb => sb === id)
+
+            socketIoService.hitStatus({
+                id,
+                status,
+                ownerId: owner
+            })
         })
 
         this.ships = JSON.parse(window.localStorage.getItem('ships')!) || []
@@ -135,7 +162,8 @@ export class GameComponent implements OnInit {
             sizeShip: size,
             orientation: className,
             blocks: [],
-            img: src
+            img: src,
+            destroyed: false
         }
     }
 
@@ -254,7 +282,7 @@ export class GameComponent implements OnInit {
             // WHEN ATTACKING, YOU MUST SEND THE MATCH, TO THE OTHER CLIENT,
             // CHECK WHERE IT FELL AND PASS THE TURN
             this.socketIoService.hit(selectedId)
-            this.socketIoService.changeTurn()
+            // this.socketIoService.changeTurn()
 
             this.strike = undefined
             this.followMouseDiv.nativeElement.style.display = 'none'
@@ -367,11 +395,8 @@ export class GameComponent implements OnInit {
 
                 if (selfImage && selfImageSize && enemyImage) {
                     selfImage.setAttribute('src', '')
-                    selfImage.style.display = ''
-                    selfImage.style.top = ''
-                    selfImage.style.height = ''
-                    selfImageSize.style.zIndex = ''
-                    selfImageSize.style.translate = ''
+                    selfImage.style.clear
+                    selfImageSize.style.clear
 
                     enemyImage.setAttribute('src', '')
                     selfImage.style.display = ''

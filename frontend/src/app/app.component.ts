@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { UserService } from './services/user.service';
 import { SocketioService } from './services/socketio.service';
+import { Player } from './utils/player';
 
 @Component({
   selector: 'app-root',

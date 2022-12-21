@@ -30,7 +30,7 @@ class Game {
     }
 
     findMatchByPlayerUid(playerUid) {
-        return this.matches.find(m => m.players.some(p => p.uid == playerUid))
+        return this.matches.find(match => match.players.some(player => player.uid === playerUid))
     }
 
     deleteMatch(matchId) {
@@ -39,10 +39,14 @@ class Game {
         return this.matches
     }
 
-    removePlayer (id) {
-        const index = this.players.findIndex((player) => player.id === id )
+    removePlayer (playerUid) {
+        const index = this.players.findIndex((player) => player.uid === playerUid )
         if (index !== -1) this.players.splice(index, 1)[0]
         return this.players
+    }
+
+    setWinner (playerUid, matchId) {
+        
     }
 }
 

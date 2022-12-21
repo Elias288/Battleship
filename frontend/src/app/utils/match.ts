@@ -8,5 +8,6 @@ export interface Match {
     canPutShips: Boolean
     canPutBoats: Boolean
     turn: string | undefined
+    winner: string | undefined
     attacks: Array<any>
 }

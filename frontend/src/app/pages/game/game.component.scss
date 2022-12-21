@@ -16,9 +16,6 @@
     }
 
     .gameBoard {
-        --size: 300px;
-        width: var(--size);
-        height: var(--size);
         margin: .5rem;
         display: grid;
         grid-template-columns: repeat(10, auto);
@@ -27,6 +24,9 @@
             background: rgb(90, 152, 247);
             position: relative;
             outline: 1px solid;
+            --size: 30px;
+            width: var(--size);
+            height: var(--size);
 
             .imgSize {
                 width: 100%;
@@ -118,8 +118,11 @@
             }
             button {
                 background: rgb(0 203 0);
-                padding: 0.5rem;
-                box-sizing: border-box;
+                // padding: 0.5rem;
+                // box-sizing: border-box;
+                width: fit-content;
+                height: fit-content;
+                
                 border-radius: 10px;
                 border: 1px solid;
                 filter: drop-shadow(2px 2px 0px black);

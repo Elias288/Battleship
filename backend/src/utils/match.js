@@ -3,6 +3,7 @@ class Match {
         this.id = id
         this.fieldSize = 10
         this.turn = undefined
+        this.winner = undefined
         this.players = []
         this.attacks = []
     }
@@ -43,11 +44,9 @@ class Match {
         this.turn = this.players[randomValue].uid
     }
 
-    changeTurn(playerUid) {
-        if (this.turn == playerUid) {
-            const otherPlayer = this.players.find(p => p.uid != this.turn)
-            this.turn = otherPlayer.uid
-        }
+    changeTurn() {
+        const otherPlayer = this.players.find(p => p.uid != this.turn)
+        this.turn = otherPlayer.uid
     }
 
     addAttack(attackId, ownerId, status) {

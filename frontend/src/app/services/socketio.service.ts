@@ -52,7 +52,7 @@ export class SocketioService {
   }
 
   public leaveBackend() {
-    this.socket.emit('leave', '')
+    this.socket.emit('leave', null)
   }
 
   public connectToMatch(roomId: string) {
@@ -74,8 +74,8 @@ export class SocketioService {
     this.socket.emit('attack', id)
   }
 
-  public hitResponse(id: string, status: boolean, ownerId: string) {
-    this.socket.emit('hitStatus', {id, status, ownerId})
+  public hitStatus(status: Object) {
+    this.socket.emit('hitStatus', status)
   }
 
   private playerList(res: Array<Player>) {
