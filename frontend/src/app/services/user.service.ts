@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
   providedIn: 'root'
 })
 export class UserService {
-  playerData: Player | undefined;
+  playerData: Player;
   playerlist: Array<Player> = [];
 
   constructor(
@@ -24,6 +24,18 @@ export class UserService {
         localStorage.removeItem('user');
       } */
     });
+    this.playerData = {
+      uid: "",
+      socketId: "",
+      id: "",
+      name: "",
+      email: "",
+      score: 0,
+      cantShips: 0,
+      points: 0,
+      canStart: false,
+      canPutBoats: false,
+    }
   }
 
   get user() {
@@ -47,7 +59,7 @@ export class UserService {
     if (this.isLoggedIn) {
       const loggedPlayer = JSON.parse(localStorage.getItem('user')!)
       this.playerlist = players.filter(a => a.uid != loggedPlayer.uid)
-      this.playerData = players.find(a => a.uid == loggedPlayer.uid)
+      this.playerData = players.find(a => a.uid == loggedPlayer.uid)!
     }
   }
 

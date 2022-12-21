@@ -1,13 +1,27 @@
 <div class="match">
     <div class="board">
+        <!-- <pre style="
+            overflow: auto;
+            max-height: 350px;
+            background-color: #fff;
+        "
+        >{{ tempMatch | json }}</pre> -->
         <div class="yourBoard">
             <h2>Your</h2>
             <div class="self gameBoard" *ngIf="match">
                <div *ngFor="let rowSize of gameBoardSize" class="gameBoardGrid">
-                   <button id="self_button-{{rowSize}}" (click)="putShip($event)" (mouseover)="mouseOver($event)" (mouseout)="cleanBoard(false, false)">{{rowSize}}</button>
-                   <div class="imgSize" id="self_imgSize-{{rowSize}}">
-                       <img src="" alt="" id="self_img-{{rowSize}}">
-                   </div> 
+                    <button 
+                        id="self_button-{{rowSize}}"
+                        (click)="putShip($event)"
+                        (mouseover)="mouseOver($event)"
+                        (mouseout)="cleanBoard(false, false)"
+                        [disabled]="!userService.playerData?.canPutBoats">
+                        {{rowSize}}
+                    </button>
+
+                    <div class="imgSize" id="self_imgSize-{{rowSize}}">
+                        <img src="" alt="" id="self_img-{{rowSize}}">
+                    </div> 
                </div>
            </div>
         </div>

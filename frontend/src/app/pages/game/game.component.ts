@@ -14,6 +14,7 @@ interface Ship {
     blocks: Array<string>
     orientation: string
     img: string
+    destroyed: boolean
 }
 
 @Component({
@@ -24,6 +25,7 @@ interface Ship {
 export class GameComponent implements OnInit {
     @ViewChild('followMouse') followMouseDiv!: ElementRef<HTMLInputElement>;
     match: Match | undefined;
+    tempMatch: any
     gameBoardSize: Array<string> = this.fillMatrix(10)
     
     ships: Array<Ship> = new Array()
@@ -50,31 +52,57 @@ export class GameComponent implements OnInit {
                 })
             }
         })
-        socketIoService.matchData.subscribe((match: Match) => {
-            this.match = match
+        socketIoService.matchData.subscribe((matchData: Match) => {
+            this.match = matchData
+            
+            // const tempPlayers = matchData.players.map(p => {
+            //     return {
+            //         cantShips: p.cantShips,
+            //         name: p.name,
+            //         uid: p.uid,
+            //         canPutShips: p.canPutBoats,
+            //         canStart: p.canStart,
+            //         points: p.points,
+            //     }
+            // })
+            // this.tempMatch = {
+            //     turn: matchData.turn,
+            //     winner: matchData.winner,
+            //     tempPlayers,
+            //     attacks: matchData.attacks
+            // }
             
             if (userService.playerData != undefined) {
                 const playerData: Player = userService.playerData
-                const matchPlayer: Player | undefined = match.players.find(p => p.uid === playerData.uid)
+                const matchPlayer: Player | undefined = matchData.players.find(p => p.uid === playerData.uid)
 
-                this.isTurn = match.turn == playerData.uid
+                this.isTurn = matchData.turn == playerData.uid
                 if (matchPlayer) {
                     userService.playerData.canPutBoats = matchPlayer.canPutBoats
                 }
             }
 
-            this.gameBoardSize = this.fillMatrix(match.fieldSize)
+            this.gameBoardSize = this.fillMatrix(matchData.fieldSize)
             
-            if (match.players.length < 2) {
+            if (matchData.players.length < 2) {
                 this.cleanBoard(true, true)
                 window.localStorage.removeItem('ships')
             }
 
-            setTimeout(() => this.printShips(), 1000)
+            // setTimeout(() => this.printShips(), 1000)
+            this.printShips(matchData)
         })
         socketIoService.attack.subscribe((data: any) => {
+            const { id, owner } = data
             const shipsBoxes = this.ships.map(s => s.blocks).flat()
-            socketIoService.hitResponse(data.id, shipsBoxes.some(sb => sb === data.id), data.owner)
+
+            const status = shipsBoxes.some(sb => sb === id)
+
+            socketIoService.hitStatus({
+                id,
+                status,
+                ownerId: owner
+            })
         })
 
         this.ships = JSON.parse(window.localStorage.getItem('ships')!) || []
@@ -135,7 +163,8 @@ export class GameComponent implements OnInit {
             sizeShip: size,
             orientation: className,
             blocks: [],
-            img: src
+            img: src,
+            destroyed: false
         }
     }
 
@@ -161,10 +190,8 @@ export class GameComponent implements OnInit {
             const evtId: number = evt.target.id.split('-').pop()
 
             this.getBoxSize(evtId, sizeShip, orientation).forEach(block => {
-                const button = document.getElementById('self_button-' + block) as HTMLInputElement | null
-                if (button) {
-                    button.style.background = "#000"
-                }
+                const button = document.getElementById('self_button-' + block) as HTMLInputElement
+                button.style.background = "#000"
             })
         }
     }
@@ -218,7 +245,8 @@ export class GameComponent implements OnInit {
 
             this.followMouseDiv.nativeElement.style.display = 'none'
 
-            this.printShips()
+            if (this.match)
+                this.printShips(this.match)
         }
     }
 
@@ -254,8 +282,6 @@ export class GameComponent implements OnInit {
             // WHEN ATTACKING, YOU MUST SEND THE MATCH, TO THE OTHER CLIENT,
             // CHECK WHERE IT FELL AND PASS THE TURN
             this.socketIoService.hit(selectedId)
-            this.socketIoService.changeTurn()
-
             this.strike = undefined
             this.followMouseDiv.nativeElement.style.display = 'none'
         }
@@ -272,7 +298,7 @@ export class GameComponent implements OnInit {
         return arr
     }
 
-    private printShips(): void {
+    private printShips(matchData: Match): void {
         this.cleanBoard(true, false)
 
         // PRINT SHIPS
@@ -281,44 +307,48 @@ export class GameComponent implements OnInit {
 
             let boxSize = 0, boxSize2 = sizeShip * 30 - 30;
             blocks.forEach(block => {
-                const button = document.getElementById('self_button-' + block) as HTMLInputElement | null
-                const imagesize = document.getElementById('self_imgSize-' + block) as HTMLImageElement | null
-                const image = document.getElementById('self_img-' + block) as HTMLImageElement | null
+                const button = document.getElementById('self_button-' + block) as HTMLInputElement
+                const imagesize = document.getElementById('self_imgSize-' + block) as HTMLImageElement
+                const image = document.getElementById('self_img-' + block) as HTMLImageElement
 
-                if (button) {
+                if (button)
                     button.style.display = "none"
-                }
-                if (image && imagesize) {
+
+                if (image) {
                     image.style.display = 'initial'
-                    imagesize.style.zIndex = '10'
                     image.setAttribute('src', img)
 
-                    if (orientation === 'vertical') {
-                        image.style.top = `-${boxSize}px`
+                    if (imagesize) {
+                        imagesize.style.zIndex = '10'
+
+                        orientation === 'vertical' ? image.style.top = `-${boxSize}px` : ''
+                        orientation === 'horizontal' ? (
+                            imagesize.style.transform = "rotate(90deg)",
+                            image.style.top = `-${boxSize2}px`
+                        ) : ''
+                        
+                        image.style.height = `${sizeShip * 30}px`
+                        boxSize += 30
+                        boxSize2 -= 30
                     }
-                    if (orientation === 'horizontal') {
-                        imagesize.style.transform = "rotate(90deg)"
-                        image.style.top = `-${boxSize2}px`
-                    }
-                    image.style.height = `${sizeShip * 30}px`
-                    boxSize += 30
-                    boxSize2 -= 30
+    
                 }
+
             })
         })
 
         // PRINT ATTACKS
-        this.match?.attacks.forEach(attack => {
+        matchData.attacks.forEach(attack => {
             if (this.userService.playerData) {
                 
                 if (attack.owner == this.userService.playerData.uid) {
-                    const image = document.getElementById('enemy_img-' + attack.id) as HTMLImageElement | null
-                    const button = document.getElementById('enemy_button-' + attack.id) as HTMLInputElement | null
+                    const image = document.getElementById('enemy_img-' + attack.id) as HTMLImageElement
+                    const button = document.getElementById('enemy_button-' + attack.id) as HTMLInputElement
 
-                    if (button) {
+                    if (button)
                         button.style.display = "none"
-                    }
-                    if (image) {
+
+                    if (image) { 
                         image.style.display = "initial"
                         image.style.height = ""
                         image.style.width = ""
@@ -329,22 +359,23 @@ export class GameComponent implements OnInit {
                             image.src = "assets/img/water.png"
                         }
                     }
+
                 }
 
                 if (attack.owner != this.userService.playerData.uid){
-                    const image = document.getElementById('self_img-' + attack.id) as HTMLImageElement | null
-                    const button = document.getElementById('self_button-' + attack.id) as HTMLInputElement | null
+                    const image = document.getElementById('self_img-' + attack.id) as HTMLImageElement
+                    const button = document.getElementById('self_button-' + attack.id) as HTMLInputElement
 
-                    if (button) {
+                    if (button)
                         button.style.display = "none"
-                    }
+
                     if (image) {
                         image.style.display = "initial"
                         image.style.height = ""
                         image.style.width = ""
                         image.style.transform = "rotate(0deg)"
                         image.style.top = "0"
-
+    
                         if (attack.status){
                             image.src = "assets/img/explotion.png"
                         } else {
@@ -358,39 +389,40 @@ export class GameComponent implements OnInit {
 
     public cleanBoard(image: Boolean, ships: Boolean): void {
         this.gameBoardSize.forEach(block => {
-            const enemyButton = document.getElementById('enemy_button-' + block) as HTMLInputElement | null
-            const selfButton = document.getElementById('self_button-' + block) as HTMLInputElement | null
+            const enemyButton = document.getElementById('enemy_button-' + block) as HTMLInputElement
+            const selfButton = document.getElementById('self_button-' + block) as HTMLInputElement
             if (image) {
-                const selfImageSize = document.getElementById('self_imgSize-' + block) as HTMLImageElement | null
-                const selfImage = document.getElementById('self_img-' + block) as HTMLImageElement | null
-                const enemyImage = document.getElementById('enemy_img-' + block) as HTMLImageElement | null
-
-                if (selfImage && selfImageSize && enemyImage) {
+                const selfImageSize = document.getElementById('self_imgSize-' + block) as HTMLImageElement
+                const selfImage = document.getElementById('self_img-' + block) as HTMLImageElement
+                const enemyImage = document.getElementById('enemy_img-' + block) as HTMLImageElement
+                
+                if (selfImage) {
                     selfImage.setAttribute('src', '')
+                    selfImage.style.height = ''
                     selfImage.style.display = ''
                     selfImage.style.top = ''
-                    selfImage.style.height = ''
-                    selfImageSize.style.zIndex = ''
-                    selfImageSize.style.translate = ''
+                }
 
-                    enemyImage.setAttribute('src', '')
-                    selfImage.style.display = ''
+                if (selfImageSize) {
+                    selfImageSize.style.zIndex = ''
+                    selfImageSize.style.transform = ''
                 }
-                if (enemyButton && selfButton) {
-                    enemyButton.style.display = ''
+
+                enemyImage.setAttribute('src', '')
+
+                if (selfButton)
                     selfButton.style.display = ''
-                }
+                enemyButton.style.display = ''
             }
             if (ships) {
                 this.canStart = false
                 window.localStorage.removeItem('ships')
                 this.ships = []
             }
-            if (selfButton && enemyButton) {
-                selfButton.style.background = ""
-                enemyButton.style.background = ""
-            }
 
+            if (selfButton)
+                selfButton.style.background = ""
+            enemyButton.style.background = ""
         })
     }
 

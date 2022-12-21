@@ -4,7 +4,7 @@ const {
 } = require('../services/player.service')
 
 class Player {
-    cantShips = 5
+    cantShips = 17
     
     constructor(socketId, id, name, score, uid, email) {
         this.socketId = socketId
@@ -29,6 +29,10 @@ class Player {
     changeCanPutBoats(value) {
         this.canPutBoats = value !== undefined ? value : !this.canPutBoats
         return this.canPutBoats
+    }
+    destroyShip() {
+        if (this.cantShips >= 0)
+            this.cantShips--
     }
 }
 
