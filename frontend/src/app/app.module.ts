@@ -27,6 +27,7 @@ import { NotFoundComponent } from './components/not-found/not-found.component';
 import { HomeComponent } from './pages/home/home.component';
 import { GameDialogComponent } from './components/game-dialog/game-dialog.component';
 import { GameComponent } from './pages/game/game.component';
+import { NavbarComponent } from './components/navbar/navbar.component';
 
 @NgModule({
   declarations: [
@@ -36,6 +37,7 @@ import { GameComponent } from './pages/game/game.component';
     HomeComponent,
     GameDialogComponent,
     GameComponent,
+    NavbarComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   imports: [

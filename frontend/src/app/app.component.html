@@ -1,17 +1,2 @@
-<div class="header" *ngIf="userService.isLoggedIn">
-    <a href="/home">home</a>
-    <!-- <button (click)="disconnect()">Logout</button>
-    <p>{{ loginService.user.displayName }}</p> -->
-    <div class="buttons">
-        <label class="status not_connected" *ngIf="!connected"></label>
-        <label class="status connected" *ngIf="connected"></label>
-
-        <button mat-button [matMenuTriggerFor]="beforeMenu">{{ userService.user.displayName }}</button>
-        <mat-menu #beforeMenu="matMenu">
-            <!-- <button mat-menu-item>Item 1</button> -->
-            <button mat-menu-item (click)="disconnect()">Logout</button>
-        </mat-menu>
-    </div>
-</div>
-
+<app-navbar *ngIf="userService.isLoggedIn"></app-navbar>
 <router-outlet></router-outlet>
