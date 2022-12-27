@@ -7,10 +7,12 @@ require('dotenv').config()
 
 const { author, license, name, description } = require('../package.json');
 require('./services/bd.service')
+
 const Player = require('./utils/player')
 const Game = require('./utils/game')
-const Match = require('./utils/match')
-const { savePlayer } = require('./services/player.service')
+
+const { savePlayer, setScore } = require('./services/player.service')
+const { saveMatch } = require('./services/match.service')
 
 const app = express()
 const server = http.createServer(app)
@@ -150,19 +152,23 @@ io.on('connection', (socket) => {
 			socket.emit('error', 'startGame - Match not found')
 			return
 		}
+		
 		const enemy = match.players.find(p => p.uid !== player.uid)
-
 		if (status) {
 			player.destroyShip()
 			enemy.points = enemy.points + 1
 		}
-
 		match.addAttack(id, ownerId, status)
 
 		if (player.cantShips == 0) {
 			match.turn = undefined
-			match.winner = enemy
+			match.winner = enemy.id
+			
+			setScore(enemy.id, enemy.score, enemy.points, true)
+			enemy.score = enemy.score += enemy.points
+
 			// SAVE MATCH
+			saveMatch(match)
 		}
 
 		match.changeTurn()

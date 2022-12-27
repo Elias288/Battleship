@@ -1,0 +1,32 @@
+<div class="gameBoard">
+    <div *ngFor="let rowSize of gameBoardSize" class="gameBoardGrid">
+        <div *ngIf="self then selfBoard else enemyBoard">
+        </div>
+        <ng-template #selfBoard>
+            <button 
+                id="self_button-{{rowSize}}"
+                [disabled]="!selectedShip"
+                (mouseover)="mouseOver($event)"
+                (mouseout)="cleanPosition()"
+                (click)="putShip($event)">
+                {{rowSize}}
+            </button>
+        
+            <div class="imgSize" id="self_imgSize-{{rowSize}}">
+                <img src="" alt="" id="self_img-{{rowSize}}">
+            </div> 
+
+        </ng-template>
+        <ng-template #enemyBoard>
+            <button 
+                id="enemy_button-{{rowSize}}"
+                [disabled]="!strike?.selected"
+                (click)="attack($event)">
+                {{rowSize}}
+            </button>
+            <div class="imgSize" id="enemy_imgSize-{{rowSize}}">
+                <img src="" alt="" id="enemy_img-{{rowSize}}">
+            </div>
+        </ng-template>
+    </div> 
+</div>

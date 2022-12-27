@@ -4,10 +4,22 @@
     min-height: 700px;
 }
 
+.matchLog {
+    position: absolute;
+    top: 0;
+    width: 50%;
+    background-color: #252525;
+    color: #fff;
+    overflow: auto;
+    height: 200px;
+    padding: 1rem 2rem;
+}
+
 .board {
     width: 100%;
     background-color: green;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
 
@@ -62,9 +74,11 @@
     padding: 1rem;
     box-sizing: border-box;
 
-    .ships {
-        width: 100%;
+    .match_info {
+        margin-bottom: 1rem;
+    }
 
+    .ships {
         * {
             margin-bottom: .5rem;
         }

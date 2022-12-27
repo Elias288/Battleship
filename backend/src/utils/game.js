@@ -44,10 +44,6 @@ class Game {
         if (index !== -1) this.players.splice(index, 1)[0]
         return this.players
     }
-
-    setWinner (playerUid, matchId) {
-        
-    }
 }
 
 module.exports = Game

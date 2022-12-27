@@ -1,21 +1,12 @@
 import { DOCUMENT, JsonPipe, Location } from '@angular/common';
 import { Component, ElementRef, HostListener, Inject, OnInit, ViewChild } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { stringify } from '@firebase/util';
 import { SocketioService } from 'src/app/services/socketio.service';
 import { UserService } from 'src/app/services/user.service';
 import { Match } from 'src/app/utils/match';
 import { Player } from 'src/app/utils/player';
-
-interface Ship {
-    selected: boolean
-    id: string
-    sizeShip: number
-    blocks: Array<string>
-    orientation: string
-    img: string
-    destroyed: boolean
-}
+import { Ship } from 'src/app/utils/ship';
 
 @Component({
     selector: 'app-game',
@@ -24,10 +15,11 @@ interface Ship {
 })
 export class GameComponent implements OnInit {
     @ViewChild('followMouse') followMouseDiv!: ElementRef<HTMLInputElement>;
-    match: Match | undefined;
+    match!: Match;
     tempMatch: any
     gameBoardSize: Array<string> = this.fillMatrix(10)
-    
+    showMatchLog: Boolean = false
+
     ships: Array<Ship> = new Array()
     selectedShip: Ship | undefined
     strike: any
@@ -39,13 +31,15 @@ export class GameComponent implements OnInit {
         public socketIoService: SocketioService,
         private activatedRoute: ActivatedRoute,
         public userService: UserService,
+        private router: Router,
         @Inject(DOCUMENT) document: Document,
     ) {
         socketIoService.isConnected()
         socketIoService.connected.subscribe((isConnected: Boolean) => {
-            if (!isConnected)
+            if (!isConnected){
                 socketIoService.joinBackend()
-
+                this.cleanShips()
+            }
             if (isConnected) {
                 activatedRoute.params.subscribe((params) => {
                     socketIoService.connectToMatch(params['roomId'])
@@ -54,25 +48,27 @@ export class GameComponent implements OnInit {
         })
         socketIoService.matchData.subscribe((matchData: Match) => {
             this.match = matchData
-            
-            // const tempPlayers = matchData.players.map(p => {
-            //     return {
-            //         cantShips: p.cantShips,
-            //         name: p.name,
-            //         uid: p.uid,
-            //         canPutShips: p.canPutBoats,
-            //         canStart: p.canStart,
-            //         points: p.points,
-            //     }
-            // })
-            // this.tempMatch = {
-            //     turn: matchData.turn,
-            //     winner: matchData.winner,
-            //     tempPlayers,
-            //     attacks: matchData.attacks
-            // }
-            
-            if (userService.playerData != undefined) {
+
+            /* MATCH LOG */
+            const tempPlayers = matchData.players.map(p => {
+                return {
+                    cantShips: p.cantShips,
+                    name: p.name,
+                    uid: p.uid,
+                    canPutShips: p.canPutBoats,
+                    canStart: p.canStart,
+                    points: p.points,
+                }
+            })
+            this.tempMatch = {
+                turn: matchData.turn,
+                winner: matchData.winner,
+                tempPlayers,
+                attacks: matchData.attacks
+            }
+            /* MATCH LOG */
+
+            if (userService.playerData) {
                 const playerData: Player = userService.playerData
                 const matchPlayer: Player | undefined = matchData.players.find(p => p.uid === playerData.uid)
 
@@ -83,14 +79,22 @@ export class GameComponent implements OnInit {
             }
 
             this.gameBoardSize = this.fillMatrix(matchData.fieldSize)
-            
+
             if (matchData.players.length < 2) {
-                this.cleanBoard(true, true)
+                this.cleanShips()
+                this.cleanBoardImages()
                 window.localStorage.removeItem('ships')
             }
 
-            // setTimeout(() => this.printShips(), 1000)
-            this.printShips(matchData)
+            if (matchData.winner) {
+                const winner = matchData.players.find(p => p.id === matchData.winner)
+                window.alert(`The winner is ${winner?.name}, score: ${winner?.score}`)
+
+                this.router.navigate(['home'])
+            }
+
+            this.printShips()
+            this.printAttacks(matchData)
         })
         socketIoService.attack.subscribe((data: any) => {
             const { id, owner } = data
@@ -122,21 +126,20 @@ export class GameComponent implements OnInit {
         const followMouse = this.followMouseDiv.nativeElement
         const { clientX, clientY } = evt
 
-        if (this.selectedShip?.selected) {
+        if (this.selectedShip) {
             const { orientation } = this.selectedShip
 
             if (orientation == 'horizontal') {
                 followMouse.style.transform = 'rotate(90deg)'
-                followMouse.style.left = clientX + 5 + 'px'
-                followMouse.style.top = clientY - 20 + 'px'
             } else {
                 followMouse.style.transform = 'rotate(0deg)'
-                followMouse.style.left = clientX - 20 + 'px'
-                followMouse.style.top = clientY + 10 + 'px'
             }
+            followMouse.style.top = clientY - 60 + 'px'
+            followMouse.style.left = clientX - 60 + 'px'
+            
         }
 
-        if (this.strike?.selected) {
+        if (this.strike) {
             followMouse.style.transform = 'rotate(0deg)'
             followMouse.style.left = clientX - 20 + 'px'
             followMouse.style.top = clientY + 10 + 'px'
@@ -150,7 +153,7 @@ export class GameComponent implements OnInit {
 
         if (this.selectedShip?.selected && this.selectedShip.id == id) {
             followMouse.style.display = 'none'
-            this.selectedShip = undefined
+            this.cleanSelectedShip()
             return
         }
 
@@ -182,111 +185,6 @@ export class GameComponent implements OnInit {
         }
     }
 
-    public mouseOver(evt: any): void {
-        if (this.selectedShip?.selected) {
-            this.cleanBoard(false, false)
-            const { sizeShip, orientation } = this.selectedShip
-
-            const evtId: number = evt.target.id.split('-').pop()
-
-            this.getBoxSize(evtId, sizeShip, orientation).forEach(block => {
-                const button = document.getElementById('self_button-' + block) as HTMLInputElement
-                button.style.background = "#000"
-            })
-        }
-    }
-
-    private getBoxSize(boxId: number, sizeShip: number, orientation: string): Array<string> {
-        const blocks: Array<string> = []
-
-        if (orientation === 'horizontal') {
-            this.gameBoardSize.forEach(box => {
-                const size = +box >= boxId && +box < (+boxId + +sizeShip) && (+boxId + +sizeShip) <= this.gameBoardSize.length
-                if (size) {
-                    blocks.push(box)
-                }
-            })
-            if (!blocks.some((b, index) => index > 0 ? parseInt(b) % 10 == 0 : false)) {
-                return blocks
-            }
-            return []
-        }
-
-        const range = [boxId.toString()]
-        for (let index = 1; index < sizeShip; index++) {
-            const val = +index * 10 + +boxId
-            range.push(val.toString())
-        }
-        if (!range.some(b => +b > 99)) {
-            range.forEach(b => {
-                blocks.push(b)
-            })
-        }
-        return blocks
-    }
-
-    public putShip(evt: any): void {
-        if (this.selectedShip?.selected) {
-            const selectedShip: Ship = this.selectedShip
-            const selectedBoxId = evt.target.id.split('-').pop()
-            const shipsBoxes = this.ships.map(s => s.blocks).flat()
-
-            // GET ALL THE BOXES THROUGH THE FIRST SELECTED AND ITS SIZE
-            const boxes = this.getBoxSize(selectedBoxId, selectedShip.sizeShip, selectedShip.orientation)
-            if (boxes.length == 0) {
-                return
-            }
-            // CLICK ALL SELECTED BOXEX
-            if (boxes.some(b => shipsBoxes.find(b2 => b2 == b))) {
-                evt.target.click()
-                return
-            }
-            this.saveShip(boxes, selectedShip)
-
-            this.followMouseDiv.nativeElement.style.display = 'none'
-
-            if (this.match)
-                this.printShips(this.match)
-        }
-    }
-
-    private saveShip (boxes: Array<string>, selectedShip: Ship): void {
-        selectedShip.blocks = boxes
-        selectedShip.selected = false
-        const selShipId = String(selectedShip.id.split('-').pop())[0]
-
-        const isSelShip = this.ships.findIndex(s => {
-            const id = String(s.id.split('-').pop())[0]
-            return id == selShipId
-        })
-        if (isSelShip !== -1) {
-            this.ships.splice(isSelShip, 1)[0]
-        }
-
-        this.ships.push(selectedShip)
-        window.localStorage.setItem('ships', stringify(this.ships))
-
-        if (this.ships.length == 5) {
-            this.canStart = true
-        } else {
-            this.canStart = false
-        }
-        this.selectedShip = undefined
-    }
-
-    public attack(evt: any): void {
-        if (this.strike?.selected) {
-            const selectedId = evt.target.id.split('-').pop()
-            const { id: strikeId } = this.strike
-
-            // WHEN ATTACKING, YOU MUST SEND THE MATCH, TO THE OTHER CLIENT,
-            // CHECK WHERE IT FELL AND PASS THE TURN
-            this.socketIoService.hit(selectedId)
-            this.strike = undefined
-            this.followMouseDiv.nativeElement.style.display = 'none'
-        }
-    }
-
     private fillMatrix(amount: number): Array<string> {
         let arr: Array<string> = []
 
@@ -298,21 +196,22 @@ export class GameComponent implements OnInit {
         return arr
     }
 
-    private printShips(matchData: Match): void {
-        this.cleanBoard(true, false)
+    public printShips () {
+        this.cleanBoardImages()
 
-        // PRINT SHIPS
         this.ships.forEach(ship => {
             const { blocks, img, sizeShip, orientation } = ship
 
             let boxSize = 0, boxSize2 = sizeShip * 30 - 30;
             blocks.forEach(block => {
                 const button = document.getElementById('self_button-' + block) as HTMLInputElement
+                const image = document.getElementById('self_img-' + block) as HTMLImageElement | null
                 const imagesize = document.getElementById('self_imgSize-' + block) as HTMLImageElement
-                const image = document.getElementById('self_img-' + block) as HTMLImageElement
 
-                if (button)
+                if (button) {
                     button.style.display = "none"
+                    button.style.background = ''
+                }
 
                 if (image) {
                     image.style.display = 'initial'
@@ -321,26 +220,31 @@ export class GameComponent implements OnInit {
                     if (imagesize) {
                         imagesize.style.zIndex = '10'
 
-                        orientation === 'vertical' ? image.style.top = `-${boxSize}px` : ''
-                        orientation === 'horizontal' ? (
-                            imagesize.style.transform = "rotate(90deg)",
+                        if (orientation === 'vertical') {
+                            image.style.top = `-${boxSize}px`
+                        }
+                        if (orientation === 'horizontal') {
+                            imagesize.style.transform = "rotate(90deg)"
                             image.style.top = `-${boxSize2}px`
-                        ) : ''
-                        
+                        }
+
                         image.style.height = `${sizeShip * 30}px`
                         boxSize += 30
                         boxSize2 -= 30
                     }
-    
                 }
-
             })
         })
+    }
 
-        // PRINT ATTACKS
+    public isCanStart(data: boolean) {
+        this.canStart = data
+    }
+
+    public printAttacks (matchData: Match) {
         matchData.attacks.forEach(attack => {
             if (this.userService.playerData) {
-                
+
                 if (attack.owner == this.userService.playerData.uid) {
                     const image = document.getElementById('enemy_img-' + attack.id) as HTMLImageElement
                     const button = document.getElementById('enemy_button-' + attack.id) as HTMLInputElement
@@ -348,7 +252,7 @@ export class GameComponent implements OnInit {
                     if (button)
                         button.style.display = "none"
 
-                    if (image) { 
+                    if (image) {
                         image.style.display = "initial"
                         image.style.height = ""
                         image.style.width = ""
@@ -362,7 +266,7 @@ export class GameComponent implements OnInit {
 
                 }
 
-                if (attack.owner != this.userService.playerData.uid){
+                if (attack.owner != this.userService.playerData.uid) {
                     const image = document.getElementById('self_img-' + attack.id) as HTMLImageElement
                     const button = document.getElementById('self_button-' + attack.id) as HTMLInputElement
 
@@ -375,8 +279,8 @@ export class GameComponent implements OnInit {
                         image.style.width = ""
                         image.style.transform = "rotate(0deg)"
                         image.style.top = "0"
-    
-                        if (attack.status){
+
+                        if (attack.status) {
                             image.src = "assets/img/explotion.png"
                         } else {
                             image.src = "assets/img/water.png"
@@ -387,46 +291,55 @@ export class GameComponent implements OnInit {
         })
     }
 
-    public cleanBoard(image: Boolean, ships: Boolean): void {
+    public cleanBoardImages () {
         this.gameBoardSize.forEach(block => {
+            const selfImageSize = document.getElementById('self_imgSize-' + block) as HTMLImageElement
             const enemyButton = document.getElementById('enemy_button-' + block) as HTMLInputElement
             const selfButton = document.getElementById('self_button-' + block) as HTMLInputElement
-            if (image) {
-                const selfImageSize = document.getElementById('self_imgSize-' + block) as HTMLImageElement
-                const selfImage = document.getElementById('self_img-' + block) as HTMLImageElement
-                const enemyImage = document.getElementById('enemy_img-' + block) as HTMLImageElement
-                
-                if (selfImage) {
-                    selfImage.setAttribute('src', '')
-                    selfImage.style.height = ''
-                    selfImage.style.display = ''
-                    selfImage.style.top = ''
-                }
+            const selfImage = document.getElementById('self_img-' + block) as HTMLImageElement
+            const enemyImage = document.getElementById('enemy_img-' + block) as HTMLImageElement
 
-                if (selfImageSize) {
-                    selfImageSize.style.zIndex = ''
-                    selfImageSize.style.transform = ''
-                }
+            if (selfImage) {
+                selfImage.setAttribute('src', '')
+                selfImage.style.height = ''
+                selfImage.style.display = ''
+                selfImage.style.top = ''
+            }
 
+            if (selfImageSize) {
+                selfImageSize.style.zIndex = ''
+                selfImageSize.style.transform = ''
+            }
+
+            if (enemyImage) {
                 enemyImage.setAttribute('src', '')
+            }
+            if (selfButton) {
+                selfButton.style.display = ''
+            }
 
-                if (selfButton)
-                    selfButton.style.display = ''
+            if (enemyButton) {
                 enemyButton.style.display = ''
             }
-            if (ships) {
-                this.canStart = false
-                window.localStorage.removeItem('ships')
-                this.ships = []
-            }
-
-            if (selfButton)
-                selfButton.style.background = ""
-            enemyButton.style.background = ""
         })
     }
 
-    public start(): void {
+    public cleanSelectedShip () {
+        this.selectedShip = undefined
+    }
+
+    public cleanShips () {
+        this.canStart = false
+        window.localStorage.removeItem('ships')
+        this.ships = []
+    }
+
+    public cleanAll() {
+        this.cleanBoardImages()
+        this.cleanShips()
+    }
+
+    public start (): void {
         this.socketIoService.startGame()
         this.canStart = false
 
@@ -434,7 +347,12 @@ export class GameComponent implements OnInit {
             this.match.canPutBoats = false
     }
 
-    public disconnect(): void {
+    public sendHit (selectedId: string) {
+        this.followMouseDiv.nativeElement.style.display = 'none'
+        this.socketIoService.hit(selectedId)
+    }
+
+    public disconnect (): void {
         window.location.href = "/home";
     }
 }
