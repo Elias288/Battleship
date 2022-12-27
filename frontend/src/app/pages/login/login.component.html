@@ -2,14 +2,15 @@
     <h1>Battleship</h1>
 
     <div class="content">
-        <button mat-raised-button color="primary" (click)="userService.googleAuth()">
+        <form class="anonimusPlayerLoguin">
+            <input type="text" name="displayName" id="" [(ngModel)]="name" #textarea placeholder="Name">
+            <button (click)="anonimusPlayerLogin()" [disabled]="name.trim().length < 3">login</button>
+        </form>
+
+
+        <button mat-raised-button color="primary" (click)="googlePlayerLogin()">
             <fa-icon [icon]="faGoogle"></fa-icon>
             Login
         </button>
-
-        <div class="anonimusPlayerLoguin">
-            <input type="text" name="displayName" id="" [(ngModel)]="name" #textarea placeholder="Name">
-            <button (click)="anonimusPlayerLogin()">login</button>
-        </div>
     </div>
 </div>

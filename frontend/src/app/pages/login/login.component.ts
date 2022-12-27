@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { UserService } from '../../services/user.service';
 import { faGoogle } from '@fortawesome/free-brands-svg-icons';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-login',
@@ -14,7 +15,8 @@ export class LoginComponent implements OnInit {
 
   constructor(
     private router: Router,
-    public userService: UserService,
+    private userService: UserService,
+    private _snackBar: MatSnackBar,
   ) { }
 
   ngOnInit(): void {
@@ -26,6 +28,19 @@ export class LoginComponent implements OnInit {
   }
 
   anonimusPlayerLogin(): void {
+    if (this.name.trim().length < 3){
+      this.openSnackBar('Need a username')
+      return
+    }
+    
     this.userService.anonimusLogin(this.name)
+  }
+
+  openSnackBar(message: string) {
+    this._snackBar.open(message, 'close');
+  }
+
+  googlePlayerLogin(): void {
+    this.userService.googleAuth()
   }
 }

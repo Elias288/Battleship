@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -20,6 +20,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatAutocompleteModule } from '@angular/material/autocomplete'
 import {MatDividerModule} from '@angular/material/divider';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { LoginComponent } from './pages/login/login.component';
 import { NotFoundComponent } from './components/not-found/not-found.component';
@@ -36,26 +37,28 @@ import { GameComponent } from './pages/game/game.component';
     GameDialogComponent,
     GameComponent,
   ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   imports: [
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
     AngularFireModule.initializeApp(environment.firebaseConfig),
     FontAwesomeModule,
+    FormsModule,
     
-    MatIconModule,
     MatButtonModule,
     MatMenuModule,
-    MatListModule,
     MatTableModule,
+    MatIconModule,
+    MatListModule,
     MatCardModule,
     MatDialogModule,
     MatFormFieldModule,
-    FormsModule,
     MatInputModule,
     MatCheckboxModule,
     MatAutocompleteModule,
     MatDividerModule,
+    MatSnackBarModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

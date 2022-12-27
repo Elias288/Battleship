@@ -11,6 +11,22 @@
 
     .content {
         // width: 500px;
+        form {
+            display: flex;
+            margin-bottom: 1rem;
+
+            input {
+                flex: 1;
+                margin-right: 0.1rem;
+                padding: 0 0.5rem;
+                box-sizing: border-box;
+            }
+            button {
+                padding: 0 0.5rem;
+                box-sizing: border-box;
+            }
+        }
+
         button {
             font-size: 1.5rem;
         }
