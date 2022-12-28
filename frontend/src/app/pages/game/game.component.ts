@@ -2,6 +2,7 @@ import { DOCUMENT, JsonPipe, Location } from '@angular/common';
 import { Component, ElementRef, HostListener, Inject, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { stringify } from '@firebase/util';
+import { BoardComponent } from 'src/app/components/board/board.component';
 import { SocketioService } from 'src/app/services/socketio.service';
 import { UserService } from 'src/app/services/user.service';
 import { Match } from 'src/app/utils/match';
@@ -10,11 +11,13 @@ import { Ship } from 'src/app/utils/ship';
 
 @Component({
     selector: 'app-game',
-    templateUrl: './game.component.html',
+    templateUrl: './game.component.html',   
     styleUrls: ['./game.component.scss']
 })
 export class GameComponent implements OnInit {
-    @ViewChild('followMouse') followMouseDiv!: ElementRef<HTMLInputElement>;
+    @ViewChild('followMouse') followMouseDiv!: ElementRef<HTMLInputElement>
+    @ViewChild(BoardComponent) BoardChild!:BoardComponent
+
     match!: Match;
     tempMatch: any
     gameBoardSize: Array<string> = this.fillMatrix(10)
@@ -82,7 +85,10 @@ export class GameComponent implements OnInit {
 
             if (matchData.players.length < 2) {
                 this.cleanShips()
-                this.cleanBoardImages()
+                if (this.BoardChild) {
+                    this.BoardChild.cleanBoardImages()
+                }
+
                 window.localStorage.removeItem('ships')
             }
 
@@ -93,8 +99,11 @@ export class GameComponent implements OnInit {
                 this.router.navigate(['home'])
             }
 
-            this.printShips()
-            this.printAttacks(matchData)
+            if (this.BoardChild) {
+                this.BoardChild.printShips()
+                // this.followMouseDiv.nativeElement.style.display = 'none'
+                this.BoardChild.printAttacks(matchData)
+            }
         })
         socketIoService.attack.subscribe((data: any) => {
             const { id, owner } = data
@@ -196,132 +205,8 @@ export class GameComponent implements OnInit {
         return arr
     }
 
-    public printShips () {
-        this.cleanBoardImages()
-
-        this.ships.forEach(ship => {
-            const { blocks, img, sizeShip, orientation } = ship
-
-            let boxSize = 0, boxSize2 = sizeShip * 30 - 30;
-            blocks.forEach(block => {
-                const button = document.getElementById('self_button-' + block) as HTMLInputElement
-                const image = document.getElementById('self_img-' + block) as HTMLImageElement | null
-                const imagesize = document.getElementById('self_imgSize-' + block) as HTMLImageElement
-
-                if (button) {
-                    button.style.display = "none"
-                    button.style.background = ''
-                }
-
-                if (image) {
-                    image.style.display = 'initial'
-                    image.setAttribute('src', img)
-
-                    if (imagesize) {
-                        imagesize.style.zIndex = '10'
-
-                        if (orientation === 'vertical') {
-                            image.style.top = `-${boxSize}px`
-                        }
-                        if (orientation === 'horizontal') {
-                            imagesize.style.transform = "rotate(90deg)"
-                            image.style.top = `-${boxSize2}px`
-                        }
-
-                        image.style.height = `${sizeShip * 30}px`
-                        boxSize += 30
-                        boxSize2 -= 30
-                    }
-                }
-            })
-        })
-    }
-
     public isCanStart(data: boolean) {
         this.canStart = data
-    }
-
-    public printAttacks (matchData: Match) {
-        matchData.attacks.forEach(attack => {
-            if (this.userService.playerData) {
-
-                if (attack.owner == this.userService.playerData.uid) {
-                    const image = document.getElementById('enemy_img-' + attack.id) as HTMLImageElement
-                    const button = document.getElementById('enemy_button-' + attack.id) as HTMLInputElement
-
-                    if (button)
-                        button.style.display = "none"
-
-                    if (image) {
-                        image.style.display = "initial"
-                        image.style.height = ""
-                        image.style.width = ""
-
-                        if (attack.status) {
-                            image.src = "assets/img/explotion.png"
-                        } else {
-                            image.src = "assets/img/water.png"
-                        }
-                    }
-
-                }
-
-                if (attack.owner != this.userService.playerData.uid) {
-                    const image = document.getElementById('self_img-' + attack.id) as HTMLImageElement
-                    const button = document.getElementById('self_button-' + attack.id) as HTMLInputElement
-
-                    if (button)
-                        button.style.display = "none"
-
-                    if (image) {
-                        image.style.display = "initial"
-                        image.style.height = ""
-                        image.style.width = ""
-                        image.style.transform = "rotate(0deg)"
-                        image.style.top = "0"
-
-                        if (attack.status) {
-                            image.src = "assets/img/explotion.png"
-                        } else {
-                            image.src = "assets/img/water.png"
-                        }
-                    }
-                }
-            }
-        })
-    }
-
-    public cleanBoardImages () {
-        this.gameBoardSize.forEach(block => {
-            const selfImageSize = document.getElementById('self_imgSize-' + block) as HTMLImageElement
-            const enemyButton = document.getElementById('enemy_button-' + block) as HTMLInputElement
-            const selfButton = document.getElementById('self_button-' + block) as HTMLInputElement
-            const selfImage = document.getElementById('self_img-' + block) as HTMLImageElement
-            const enemyImage = document.getElementById('enemy_img-' + block) as HTMLImageElement
-
-            if (selfImage) {
-                selfImage.setAttribute('src', '')
-                selfImage.style.height = ''
-                selfImage.style.display = ''
-                selfImage.style.top = ''
-            }
-
-            if (selfImageSize) {
-                selfImageSize.style.zIndex = ''
-                selfImageSize.style.transform = ''
-            }
-
-            if (enemyImage) {
-                enemyImage.setAttribute('src', '')
-            }
-            if (selfButton) {
-                selfButton.style.display = ''
-            }
-
-            if (enemyButton) {
-                enemyButton.style.display = ''
-            }
-        })
     }
 
     public cleanSelectedShip () {
@@ -334,8 +219,15 @@ export class GameComponent implements OnInit {
         this.ships = []
     }
 
+    public cleanFollowMouse() {
+        this.followMouseDiv.nativeElement.style.display = 'none'
+    }
+
     public cleanAll() {
-        this.cleanBoardImages()
+        if (this.BoardChild) {
+            this.BoardChild.cleanBoardImages()
+        }
+            
         this.cleanShips()
     }
 
