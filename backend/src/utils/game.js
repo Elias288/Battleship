@@ -1,4 +1,6 @@
 const Match = require('./match')
+const { saveMatch } = require('../services/match.service')
+const { setScore } = require('../services/player.service')
 
 class Game {
     constructor() {
@@ -24,6 +26,10 @@ class Game {
     }
 
     addMatch(partyId) {
+        const isMatch = this.getMatchById(partyId)
+        if (isMatch) {
+            return isMatch
+        }
         const match = new Match(partyId)
         this.matches.push(match)
         return match
@@ -45,8 +51,87 @@ class Game {
         return this.players
     }
 
-    setWinner (playerUid, matchId) {
+    addToMatch(socketId, matchId){
+        const match = this.addMatch(matchId)
+        if (match.players.length == 2) return -1
         
+        const player = this.getPlayerBySocketId(socketId)
+        if (!player) return -2
+
+        match.addPlayerToMatch(player)
+        return match
+    }
+
+    removeToMatch(socketId, matchId){
+        const match = this.getMatchById(matchId)
+        if (!match) return -1
+
+        const player = this.getPlayerBySocketId(socketId)
+        if (!player) return -2
+
+		player.changeCanStart(false)
+		player.changeCanPutBoats(true)
+        match.removePlayerFromMatch(player.uid)
+
+        return match
+    }
+
+    sendAttack(position, socketId, matchId){
+        const match = this.getMatchById(matchId)
+        if (!match) return -1
+
+        const player = this.getPlayerBySocketId(socketId)
+        if (!player) return -2
+
+        return { id: position, owner: player.uid }
+    }
+
+    getStatus(position, status, ownerId, socketId, matchId){
+        const match = this.getMatchById(matchId)
+        if (!match) return -1
+
+        const player = this.getPlayerBySocketId(socketId)
+        if (!player) return -2
+
+        const enemy = match.players.find(p => p.uid !== player.uid)
+		if (status) {
+			player.destroyShip()
+			enemy.points = enemy.points + 1
+		}
+		match.addAttack(position, ownerId, status) 
+
+        if (player.cantShips == 0) {
+			match.turn = undefined
+			match.winner = enemy.id
+			
+			setScore(enemy.id, enemy.score, enemy.points, true)
+			enemy.score = enemy.score += enemy.points
+
+			// SAVE MATCH
+			saveMatch(match)
+		}
+
+        match.changeTurn()
+
+        return match
+    }
+
+    startGame(socketId, matchId){
+        const match = this.getMatchById(matchId)
+        if (!match) return -1
+
+        const player = this.getPlayerBySocketId(socketId)
+        if (!player) return -2
+
+        player.changeCanStart(true)
+		player.changeCanPutBoats(false)
+		const canStart = match.isCanStart()
+		
+		if (canStart) {
+			match.setFirstTurn()
+		}
+
+        return match
     }
 }
 

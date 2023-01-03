@@ -12,7 +12,7 @@ const Player = require('./utils/player')
 const Game = require('./utils/game')
 
 const { savePlayer, setScore } = require('./services/player.service')
-const { saveMatch } = require('./services/match.service')
+// const { saveMatch } = require('./services/match.service')
 
 const app = express()
 const server = http.createServer(app)
@@ -50,11 +50,11 @@ io.on('connection', (socket) => {
 	socket.on('join', (data) => join(data))
 	socket.on('isConnected', () => isConnected())
 	socket.on('addToMatch', (data) => addToMatch(data))
-	socket.on('startGame', () => startGame())
-	socket.on('attack', (id) => sendAttack(id))
+	socket.on('startGame', (matchId) => startGame(matchId))
+	socket.on('attack', (info) => sendAttack(info))
 	socket.on('hitStatus', (attack) => hitStatus(attack))
 	
-	socket.on('removeToMatch', () => removeToMatch())
+	socket.on('removeToMatch', (matchId) => removeToMatch(matchId))
 	socket.on('leave', () => disconnect())
 	socket.on('disconnect', () => disconnect())
 
@@ -69,7 +69,7 @@ io.on('connection', (socket) => {
 		}
 		const players = game.addPlayer(newPlayer)
 
-		// console.log('join');
+		console.log('join', newPlayer.name);
 		socket.emit('playerList', players)
 		socket.broadcast.emit('playerList', players)
 		socket.emit('joined', true)
@@ -82,124 +82,98 @@ io.on('connection', (socket) => {
 	}
 	const addToMatch = async (data) => {
 		const { uid, matchId } = data
+		if (matchId) {
+			const res = game.addToMatch(socket.id, matchId)
+			if (res == -1) {
+				socket.emit('error', 'addToMatch - Match full')
+				return
+			}
+			
+			if (res == -2){
+				socket.emit('error', 'addToMatch - User not found')
+				return
+			}
+			
+			console.log('addToMatch', matchId, res.players.map(p => p.name))
+			socket.join(matchId)
+			socket.emit('matches', res)
+			socket.broadcast.to(matchId).emit('matches', res)
+		}
 		
-		let match = game.getMatchById(matchId)
-		if (match == undefined) {
-			match = game.addMatch(matchId)
-		}
-		if (match.players.length == 2) {
-			socket.emit('error', 'addToMatch - Match full')
-			return
-		}
-		const player = game.getPlayerByUid(uid)
-		if (!player) {
-			socket.emit('error', 'addToMatch - User not found')
-			return
-		}
-		match.addPlayerToMatch(player)
-
-		// console.log('addToMatch')
-		socket.join(matchId)
-		socket.emit('matches', match)
-		socket.broadcast.to(matchId).emit('matches', match)
 	}
-	const removeToMatch = async () => {
-		const player = game.getPlayerBySocketId(socket.id)
-		if (!player) {
-			socket.emit('error', 'removeToMatch - User not found')
-			return
-		}
-		const match = game.findMatchByPlayerUid(player.uid)
-		if (!match) {
+	const removeToMatch = async (matchId) => {
+		const res = game.removeToMatch(socket.id, matchId)
+		if (res == -1) {
 			socket.emit('error', 'removeToMatch - Match not found')
 			return
 		}
-		match.removePlayerFromMatch(player.uid)
-		if (match.players.length == 0) {
-			game.deleteMatch(match.id)
-		}
 
-		// console.log('removeToMatch');
-		socket.emit('matches', match)
-		socket.to(match.id).emit('matches', match)
-	}
-	const sendAttack = (id) => {
-		// THE ATTACKER SENDS THE ATTACKED THE ATTACK POSITION, THE ATTACKER RESPONSES AND IS SAVED IN MATCH
-		const player = game.getPlayerBySocketId(socket.id)
-		if (!player) {
-			socket.emit('error', 'attack - User not found')
-			return
-		}
-		const match = game.findMatchByPlayerUid(player.uid)
-		if (!match) {
-			socket.emit('error', 'startGame - Match not found')
+		if (res == -2) {
+			socket.emit('error', 'removeToMatch - User not found')
 			return
 		}
 
-		// console.log('attack from:', player.name ,'to:', id);
-		socket.broadcast.to(match.id).emit('attack', {id, owner: player.uid})
+		if (res.players.length == 0) {
+			game.deleteMatch(matchId)
+		}
+
+		console.log('removeToMatch');
+		socket.emit('matches', res)
+		socket.to(res.id).emit('matches', res)
 	}
-	const hitStatus = (attack) => {
-		const {id, status, ownerId} = attack
-		// THE ATTACKER SENDS THE ATTACKED THE ATTACK POSITION, THE ATTACKER RESPONSES AND IS SAVED IN MATCH
-		const player = game.getPlayerBySocketId(socket.id)
-		if (!player) {
-			socket.emit('error', 'attack - User not found')
-			return
-		}
-		const match = game.findMatchByPlayerUid(player.uid)
-		if (!match) {
-			socket.emit('error', 'startGame - Match not found')
-			return
-		}
+
+	const startGame = (matchId) => {
+		const res = game.startGame(socket.id, matchId)
 		
-		const enemy = match.players.find(p => p.uid !== player.uid)
-		if (status) {
-			player.destroyShip()
-			enemy.points = enemy.points + 1
-		}
-		match.addAttack(id, ownerId, status)
-
-		if (player.cantShips == 0) {
-			match.turn = undefined
-			match.winner = enemy.id
-			
-			setScore(enemy.id, enemy.score, enemy.points, true)
-			enemy.score = enemy.score += enemy.points
-
-			// SAVE MATCH
-			saveMatch(match)
+		if (res == -1) {
+			socket.emit('error', 'startGame - Match not found')
+			return
 		}
 
-		match.changeTurn()
-
-		// console.log('hitResponse', status);
-		socket.emit('matches', match)
-		socket.broadcast.to(match.id).emit('matches', match)
-	}
-
-	const startGame = () => {
-		const player = game.getPlayerBySocketId(socket.id)
-		if (!player) {
+		if (res == -2) {
 			socket.emit('error', 'startGame - User not found')
 			return
 		}
-		const match = game.findMatchByPlayerUid(player.uid)
-		if (!match) {
+
+		// console.log('startGame');
+		socket.emit('matches', res)
+		socket.broadcast.to(res.id).emit('matches', res)
+	}
+	const sendAttack = (info) => {
+		// THE ATTACKER SENDS THE ATTACKED THE ATTACK POSITION, THE ATTACKER RESPONSES AND IS SAVED IN MATCH
+		const {id, matchId} = info
+		const res = game.sendAttack(id, socket.id, matchId)
+		if (res == -2) {
+			socket.emit('error', 'attack - User not found')
+			return
+		}
+		
+		if (res == -1) {
 			socket.emit('error', 'startGame - Match not found')
 			return
 		}
-		player.changeCanStart(true)
-		player.changeCanPutBoats(false)
-		const canStart = match.isCanStart()
+
+		console.log('attack', 'to:', id);
+		socket.broadcast.to(matchId).emit('attack', res)
+	}
+	const hitStatus = (attack) => {
+		const { id, status, ownerId, matchId } = attack
+		const res = game.getStatus(id, status, ownerId, socket.id, matchId)
+		// THE ATTACKER SENDS THE ATTACKED THE ATTACK POSITION, THE ATTACKER RESPONSES AND IS SAVED IN MATCH
 		
-		if (canStart) {
-			match.setFirstTurn()
+		if (res == -1) {
+			socket.emit('error', 'startGame - Match not found')
+			return
 		}
 
-		// console.log('startGame');
-		socket.emit('matches', match)
-		socket.broadcast.to(match.id).emit('matches', match)
+		if (res == -2) {
+			socket.emit('error', 'attack - User not found')
+			return
+		}
+
+		console.log('hitResponse', status);
+		socket.emit('matches', res)
+		socket.broadcast.to(matchId).emit('matches', res)
 	}
 	const disconnect = () => {
 		const player = game.getPlayerBySocketId(socket.id)

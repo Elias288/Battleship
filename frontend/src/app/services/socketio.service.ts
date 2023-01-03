@@ -55,23 +55,32 @@ export class SocketioService {
     this.socket.emit('leave', null)
   }
 
-  public connectToMatch(roomId: string) {
-    this.socket.emit('addToMatch', { 
-      uid: this.userService.user.uid,
-      matchId: roomId,
-    })
+  public leaveToMatch(matchId: string) {
+    if (matchId)
+      this.socket.emit('removeToMatch', matchId)
+    else
+      console.log('error')
   }
 
-  public startGame() {
-    this.socket.emit('startGame', null)
+  public connectToMatch(roomId: string) {
+    if (this.userService.user.uid){
+      this.socket.emit('addToMatch', { 
+        uid: this.userService.user.uid,
+        matchId: roomId,
+      })
+    }
+  }
+
+  public startGame(matchId: string) {
+    this.socket.emit('startGame', matchId)
   }
 
   public changeTurn() {
     this.socket.emit('changeTurn', null)
   }
 
-  public hit(id: string) {
-    this.socket.emit('attack', id)
+  public hit(id: string, matchId: string) {
+    this.socket.emit('attack', {id, matchId})
   }
 
   public hitStatus(status: Object) {

@@ -19,8 +19,8 @@ export class HomeComponent implements OnInit {
     public dialog: MatDialog,
   ) {
     socketIoService.isConnected()
-    socketIoService.connected.subscribe((res) => {
-      if (!res) {
+    socketIoService.connected.subscribe((isConnected) => {
+      if (!isConnected) {
         this.socketIoService.joinBackend()
       }
     })

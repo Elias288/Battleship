@@ -19,6 +19,7 @@ export class GameComponent implements OnInit {
     @ViewChild(BoardComponent) BoardChild!:BoardComponent
 
     match!: Match;
+    matchId!: string
     tempMatch: any
     gameBoardSize: Array<string> = this.fillMatrix(10)
     showMatchLog: Boolean = false
@@ -42,9 +43,10 @@ export class GameComponent implements OnInit {
             if (!isConnected){
                 socketIoService.joinBackend()
                 this.cleanShips()
-            }
-            if (isConnected) {
+            } else {
                 activatedRoute.params.subscribe((params) => {
+                    this.matchId = params['roomId']
+                    // console.log(params['roomId']);
                     socketIoService.connectToMatch(params['roomId'])
                 })
             }
@@ -92,21 +94,22 @@ export class GameComponent implements OnInit {
                 window.localStorage.removeItem('ships')
             }
 
-            if (matchData.winner) {
-                const winner = matchData.players.find(p => p.id === matchData.winner)
-                window.alert(`The winner is ${winner?.name}, score: ${winner?.score}`)
-
-                this.router.navigate(['home'])
-            }
-
             if (this.BoardChild) {
                 this.BoardChild.printShips()
-                // this.followMouseDiv.nativeElement.style.display = 'none'
                 this.BoardChild.printAttacks(matchData)
+           
+                if (matchData.winner) {
+                    const winner = matchData.players.find(p => p.id === matchData.winner)
+                    window.alert(`The winner is ${winner?.name}, score: ${winner?.score}`)
+                    this.disconnect()
+                }
             }
+
         })
         socketIoService.attack.subscribe((data: any) => {
             const { id, owner } = data
+            console.log(data)
+            
             const shipsBoxes = this.ships.map(s => s.blocks).flat()
 
             const status = shipsBoxes.some(sb => sb === id)
@@ -114,7 +117,8 @@ export class GameComponent implements OnInit {
             socketIoService.hitStatus({
                 id,
                 status,
-                ownerId: owner
+                ownerId: owner,
+                matchId: this.match.id
             })
         })
 
@@ -232,7 +236,7 @@ export class GameComponent implements OnInit {
     }
 
     public start (): void {
-        this.socketIoService.startGame()
+        this.socketIoService.startGame(this.match.id)
         this.canStart = false
 
         if (this.match)
@@ -241,10 +245,12 @@ export class GameComponent implements OnInit {
 
     public sendHit (selectedId: string) {
         this.followMouseDiv.nativeElement.style.display = 'none'
-        this.socketIoService.hit(selectedId)
+        this.socketIoService.hit(selectedId, this.matchId)
     }
 
     public disconnect (): void {
-        window.location.href = "/home";
+        // window.location.href = "/home";
+        this.socketIoService.leaveToMatch(this.matchId)
+        this.router.navigate(['/home'])
     }
 }
