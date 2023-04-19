@@ -3,6 +3,8 @@ import { Router } from '@angular/router';
 import { UserService } from '../../services/user.service';
 import { faGoogle } from '@fortawesome/free-brands-svg-icons';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { SocketioService } from 'src/app/services/socketio.service';
+import { AngularFireAuth } from '@angular/fire/compat/auth';
 
 @Component({
   selector: 'app-login',
@@ -11,7 +13,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 })
 export class LoginComponent implements OnInit {
   faGoogle = faGoogle;
-  name: string = '';
+  name: string = ""
+  password: string = ""
 
   constructor(
     private router: Router,
@@ -27,13 +30,24 @@ export class LoginComponent implements OnInit {
     }
   }
 
-  anonimusPlayerLogin(): void {
+  async anonimusPlayerLogin(): Promise<void> {
     if (this.name.trim().length < 3){
       this.openSnackBar('Need a username')
       return
     }
+    if (this.password.trim().length < 4){
+      this.openSnackBar('Invalid password')
+      return
+    }
     
-    this.userService.anonimusLogin(this.name)
+    const res = await this.userService.anonimusLogin(this.name, this.password)
+    // console.log(res)
+    if (res.error) {
+      this.openSnackBar(res.error)
+      return
+    }
+
+    this.userService.getInfo(res.token)
   }
 
   openSnackBar(message: string) {
@@ -41,6 +55,8 @@ export class LoginComponent implements OnInit {
   }
 
   googlePlayerLogin(): void {
-    this.userService.googleAuth()
+    const res = this.userService.googleAuth()
+    console.log(res);
+    
   }
 }

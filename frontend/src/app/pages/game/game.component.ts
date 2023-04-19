@@ -41,7 +41,7 @@ export class GameComponent implements OnInit {
         socketIoService.isConnected()
         socketIoService.connected.subscribe((isConnected: Boolean) => {
             if (!isConnected){
-                socketIoService.joinBackend()
+                // socketIoService.joinBackend()
                 this.cleanShips()
             } else {
                 activatedRoute.params.subscribe((params) => {
@@ -130,7 +130,7 @@ export class GameComponent implements OnInit {
 
     ngOnInit(): void {
         if (!this.userService.isLoggedIn) {
-            this.socketIoService.joinBackend()
+            // this.socketIoService.joinBackend()
         }
     }
 

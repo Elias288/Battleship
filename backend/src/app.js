@@ -11,8 +11,7 @@ require('./services/bd.service')
 const Player = require('./utils/player')
 const Game = require('./utils/game')
 
-const { savePlayer, setScore } = require('./services/player.service')
-// const { saveMatch } = require('./services/match.service')
+const userRoutes = require('./routes/user.routes')
 
 const app = express()
 const server = http.createServer(app)
@@ -38,6 +37,8 @@ app.get('/match/:id', (req, res) => {
 	res.send(game.getMatch(req.params.id))
 })
 
+app.use('/game/user', userRoutes)
+
 const whiteList = [ 'http://localhost:4200', '*' ]
 const io = new Server(server, {
 	cors: {
@@ -59,20 +60,25 @@ io.on('connection', (socket) => {
 	socket.on('disconnect', () => disconnect())
 
 	const join = async (data) => {
-		const { name, uid, email } = data
-		const savedPlayer = await savePlayer(name, uid, data.email);
-		const newPlayer = new Player( socket.id, savedPlayer._id, savedPlayer.name, savedPlayer.score, uid, data.email)
+	// 	const { name, uid, email, password } = data
 		
-		if (game.getPlayerByUid(newPlayer.uid)){
-			socket.emit('error', 'join - User already register')
-			return
-		}
-		const players = game.addPlayer(newPlayer)
+	// 	const hashedPassword = password ? bcrypt.hashSync(password, 8) : null
+	// 	// console.log('data: ', {socketid: socket.id, name, uid, email, hashedPassword})
+	// 	const players = game.join(socket.id, name, uid, email, hashedPassword)
 
-		console.log('join', newPlayer.name);
-		socket.emit('playerList', players)
-		socket.broadcast.emit('playerList', players)
-		socket.emit('joined', true)
+	// 	// const savedPlayer = await savePlayer(name, uid, email);
+	// 	// const newPlayer = new Player( socket.id, savedPlayer._id, savedPlayer.name, savedPlayer.score, uid, email)
+		
+	// 	if (players == -1){
+	// 		socket.emit('error', 'join - Wrong credentials')
+	// 		return
+	// 	}
+	// 	// const players = game.addPlayer(newPlayer)
+
+	// 	console.log('join');
+	// 	socket.emit('playerList', players)
+	// 	socket.broadcast.emit('playerList', players)
+	// 	socket.emit('joined', true)
 	}
 	const isConnected = () => {
 		const isConnected = game.players.some(p => p.socketId == socket.id)

@@ -18,12 +18,8 @@ export class HomeComponent implements OnInit {
     public userService: UserService,
     public dialog: MatDialog,
   ) {
-    socketIoService.isConnected()
-    socketIoService.connected.subscribe((isConnected) => {
-      if (!isConnected) {
-        this.socketIoService.joinBackend()
-      }
-    })
+    // this.socketIoService.joinBackend()
+    
     window.localStorage.removeItem('ships')
   }
 

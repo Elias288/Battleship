@@ -1,6 +1,8 @@
 const Match = require('./match')
+const Player = require('./player')
 const { saveMatch } = require('../services/match.service')
-const { setScore } = require('../services/player.service')
+const { setScore, findPlayerByName, savePlayer } = require('../services/player.service')
+var bcrypt = require('bcryptjs');
 
 class Game {
     constructor() {
@@ -10,6 +12,38 @@ class Game {
 
     addPlayer(player) {
         this.players.push(player)
+        return this.players
+    }
+
+    async join(newPlayer) {
+        // const findedPlayer = await findPlayerByName(name)
+        // let newPlayer
+
+        // if (findedPlayer) {
+        //     if (hashedPassword) {
+        //         bcrypt.compare(hashedPassword, findedPlayer.password).then(res => {
+        //             console.log(res);
+        //         })
+        //         return
+        //     }
+
+        //     newPlayer = new Player(socketId, findedPlayer.name, findedPlayer.score, findedPlayer.uid, findedPlayer.email)
+        //     this.addPlayer(newPlayer)
+        //     return this.players
+        // }
+        
+        // // IF ANONIMUS LOGIN
+        // if (hashedPassword) {
+        //     newPlayer = new Player(socketId, name, 0, uid, null)
+        // } 
+        
+        // // IF GOOGLE LOGIN
+        // if (email) {
+        //     newPlayer = new Player(socketId, name, 0, uid, email)
+        // }
+        
+        this.addPlayer(newPlayer)
+        // savePlayer(newPlayer.name, newPlayer.uid, newPlayer.email, hashedPassword)
         return this.players
     }
 
