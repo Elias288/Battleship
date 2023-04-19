@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "nodemon src/index.js"
+    "dev": "nodemon src/index.js",
+
+    "podU": "bash ./scripts/podmanUpdate.sh"
   },
   "keywords": [],
   "author": "Elias Bianchi",
