@@ -1,25 +1,34 @@
 const playerSchema = require('../schemas/player.schema')
 const bcrypt = require('bcryptjs')
 
-const listPlayers = async () => {
-    return await playerSchema.find({});
-}
-
-const savePlayer = async (name, uid, email) => {
-    const player = await findPlayerByUid(uid)
-    if(player) return player
-
+exports.savePlayer = async (name, email, password) => {
+    const player = await playerSchema.findOne({ $or: [ { username: name }, { email } ] }).exec()
+    if (player) return {
+        isError: true,
+        details: `Usuario ya registrado`,
+        statusCode: 400,
+    }
+    
+    const hashedPassword = bcrypt.hashSync(password, 8)
     const newPlayer = new playerSchema({
-        uid,
-        name,
+        username: name,
         email,
+        password: hashedPassword,
         score: 0,
     })
 
-    return newPlayer.save()
+    return newPlayer.save().then((user) => {
+        return { isError: false,  user}
+    }).catch((err) => {
+        return {
+            isError: true,
+            details: err,
+            statusCode: 500,
+        }
+    })
 }
 
-const saveAnonimPlayer = async (name, uid, password) => {
+/* const saveAnonimPlayer = async (name, uid, password) => {
     const hashedPassword = await bcrypt.hashSync(password, 8)
     const player = await findPlayerByName(name)
     
@@ -38,6 +47,10 @@ const saveAnonimPlayer = async (name, uid, password) => {
         password: hashedPassword,
     })
     return newPlayer.save()
+}
+
+exports.listPlayers = async () => {
+    return await playerSchema.find({})
 }
 
 const setScore = async (id, score, points, sum) => {
@@ -66,10 +79,10 @@ const getPlayerByName = (name) => {
 
 module.exports = {
     listPlayers,
+    savePlayer,
     getPlayerByUid,
     getPlayerByName,
-    savePlayer,
     saveAnonimPlayer,
     deletePlayer,
     setScore,
-}
+} */

@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 
 const uri = `mongodb+srv://${process.env.BDUSERNAME}:${process.env.BDPASSWORD}`
-    + `@cluster0.3vbdspd.mongodb.net/${process.env.BDNAME}`
+    + `@cluster0.${process.env.CLUSTERID}.mongodb.net/${process.env.BDNAME}`
     + `?retryWrites=true&w=majority`
 
 const options = {
