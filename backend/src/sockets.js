@@ -1,6 +1,25 @@
+const OnlineUsers = require('./utils/onlineUsers')
+
+const onlineUsers = new OnlineUsers()
 
 module.exports = (io) => {
     io.on('connection', (socket) => {
+        socket.on('client:join', async (data) => {
+            const { userId, username, email, guest } = data
+            onlineUsers.addNewUser(userId, email, username, socket.id, guest)
+
+            emitOnlineUsers()
+        })
+        
+        socket.on('disconnect', () => {
+            onlineUsers.removeUser(socket.id)
+            emitOnlineUsers()
+        })
+
+        const emitOnlineUsers = () => {
+            io.emit('server:onlineUsers', onlineUsers.getAllUsers())
+        }
+
         /* socket.on('join', (data) => join(data))
         socket.on('isConnected', () => isConnected())
         socket.on('addToMatch', (data) => addToMatch(data))
@@ -170,7 +189,7 @@ module.exports = (io) => {
     
             // console.log('disconnect');
             const players = game.removePlayer(player.uid)
-            socket.broadcast.emit('playerList', players)
+            socket.broadcast.emit('playerList', players) 
         } */
     })
 }

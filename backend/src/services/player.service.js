@@ -1,5 +1,6 @@
 const playerSchema = require('../schemas/player.schema')
 const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
 
 exports.savePlayer = async (name, email, password) => {
     const player = await playerSchema.findOne({ $or: [ { username: name }, { email } ] }).exec()
@@ -26,6 +27,27 @@ exports.savePlayer = async (name, email, password) => {
             statusCode: 500,
         }
     })
+}
+
+exports.login = async (username, email, password) => {
+    const player = await playerSchema.findOne({ $or: [ { username }, { email } ] }).exec()
+    if (!player) return {
+        isError: true,
+        details: 'Usuario no encontrado',
+        statusCode: 404,
+    }
+
+    if (await bcrypt.compare(password, player.password)) {
+        const tokenData = { id: player._id, username: player.username, email: player.email }
+        const token = jwt.sign(tokenData, process.env.TOKEN_SECRET, { expiresIn: 43200 }) // EXPIRA EN 12 HORAS CADA VEZ QUE SE LOGUEA
+        return { jwt: token }
+    } else {
+        return {
+            isError: true,
+            details: 'Usuario o contraseña invalida',
+            statusCode: 400,
+        }
+    }
 }
 
 /* const saveAnonimPlayer = async (name, uid, password) => {

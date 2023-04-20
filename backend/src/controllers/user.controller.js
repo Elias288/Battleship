@@ -1,10 +1,8 @@
-const bcrypt = require('bcryptjs')
-const jwt = require('jsonwebtoken')
 const Joi = require("joi")
 const { joiPasswordExtendCore } = require('joi-password')
 const joiPassword = Joi.extend(joiPasswordExtendCore)
 
-const { getPlayerByName, getPlayerByUid, savePlayer } = require('../services/player.service')
+const userService = require('../services/player.service')
 const { tryCatch } = require('../tryCatch')
 const AppError = require('../AppError')
 
@@ -35,6 +33,15 @@ const createUserSchema = Joi.object({
     repeat_password: Joi.ref('password')
 })
 
+const loginUserSchema = Joi.object({
+    email: Joi.string()
+        .email({ minDomainSegments: 2, tlds: { allow: validEmails } }),
+    username: Joi.string(),
+    password: joiPassword
+        .string()
+        .required(),
+}).xor('email', 'username')
+
 exports.create = tryCatch(async (req, res) => {
     const { username, email, password, repeat_password } = req.body
 
@@ -43,52 +50,24 @@ exports.create = tryCatch(async (req, res) => {
         if (error) throw error
     }
 
-    const data = await savePlayer(username, email, password)
+    const data = await userService.savePlayer(username, email, password)
     if (data.isError) throw new AppError(data.details, data.statusCode)
 
     res.status(200).send({ message: 'Usuario creado existosamente' })
 })
 
-/* exports.login = async (req, res) => {
-    const { name, uid, password, anonymous } = req.body
-    // console.log(req.body)
+ exports.login = tryCatch(async (req, res) => {
+    const { username, email, password } = req.body,
+    {error} = loginUserSchema.validate({ email, username, password })
+    if (error) throw error
 
-    if (!name) return res.status(400).json({ error: 'Name is required' })
-    if (!uid) return res.status(400).json({ error: 'Uid is required' })
-    if (anonymous == undefined) return res.status(400).json({ error: 'anonymous is required' })
-    let player
+    const data = await userService.login(username, email, password)
+    if (data.isError) throw new AppError(data.details, data.statusCode)
 
-    if (anonymous){
-        player = await getPlayerByName(name)
-        if (!player) return res.status(404).json({ error: 'user not found'})
-        if (!password) return res.status(400).json({ error: 'Invalid password'})
-        const pwd = await bcrypt.compare(password, player.password)
-        if (!pwd) return res.status(401).send({ error: 'Wrong credentials' })
-    } else {
-        player = await getPlayerByUid(uid)
-        if (!player) return res.status(404).json({ error: 'user not found'})
-    }
+    res.status(200).send(data)
+})
 
-
-    var token = jwt.sign({
-        id: player._id,
-        name: player.name,
-        uid: player.uid
-    }, process.env.TOKEN_SECRET,{
-        expiresIn: 7200
-    })
-
-    return res.status(201).send({
-        id: player.id,
-        name: player.name,
-        uid: player.uid,
-        email: player.email,
-        score: player.score,
-        token
-    })
-}
-
-exports.getUser = ( req, res ) => {
+/*exports.getUser = ( req, res ) => {
     const token = req.headers['x-access-token']
     jwt.verify(token, process.env.TOKEN_SECRET, async (err, decoded) => {
         if (err) return res.status(500).send({ error: 'Authentication Error' })
