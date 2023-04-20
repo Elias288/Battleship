@@ -1,14 +1,11 @@
 const {
     setScore,
-    savePlayer,
 } = require('../services/player.service')
 
 class Player {
     cantShips = 17
     
-    constructor(socketId, id, name, score, uid, email) {
-        this.socketId = socketId
-        this.id = id
+    constructor(name, score, uid, email) {
         this.name = name
         this.score = score
         this.uid = uid

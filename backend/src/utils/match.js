@@ -16,8 +16,11 @@ class Match {
     }
 
     removePlayerFromMatch(playerUid){
-        const player = this.players.findIndex(p => p.uid == playerUid)
-        if (player !== -1) this.players.splice(player, 1)[0]
+        const newPlayers = this.players.filter(player => {
+            return player.uid != playerUid
+        })
+        
+        this.players = newPlayers
 
         if (this.players.length > 0) {
             this.attacks = []
@@ -26,7 +29,7 @@ class Match {
             this.players[0].canStart = false
         }
     }
-
+    
     findPlayer(playerUid) {
         return this.players.find(p => p?.uid == playerUid)
     }
@@ -45,12 +48,15 @@ class Match {
     }
 
     changeTurn() {
-        const otherPlayer = this.players.find(p => p.uid != this.turn)
-        this.turn = otherPlayer.uid
+        if (this.players.length == 2) {
+            const otherPlayer = this.players.find(p => p.uid != this.turn)
+            // console.log(otherPlayer.name)
+            this.turn = otherPlayer.uid
+        }
     }
 
-    addAttack(attackId, ownerId, status) {
-        const newAttack = new Attack(attackId, ownerId, status)
+    addAttack(position, ownerId, status) {
+        const newAttack = new Attack(position, ownerId, status)
         this.attacks.push(newAttack)
     }
 }

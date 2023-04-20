@@ -22,17 +22,11 @@ export class SocketioService {
     this.socket = io(environment.SOCKET_ENDPOINT)
 
     this.socket.on('error', (data: Array<any>) => this.error(data))
-
     this.socket.on('playerList', (res: Array<Player>) => this.playerList(res))
-    
     this.socket.on('matches', (res: Match) => this.matchData.emit(res))
-    
     this.socket.on('joined', (res: Boolean) => this.connected.emit(res))
-
     this.socket.on('attack', (data: any) => this.attack.emit(data))
-
     this.socket.on('isConnected', (res: Boolean) => this.connected.emit(res))
-
     this.socket.on('disconnect', () => this.disconnect())
   }
 
@@ -40,14 +34,14 @@ export class SocketioService {
     this.socket.emit('isConnected', null)
   }
   
-  public joinBackend() {
+  public joinBackend(displayName: string, uid: string, email: string, password: string) {
     localStorage.removeItem('error')
-    const {displayName, uid, email} = this.userService.user
 
     this.socket.emit('join', { 
       name: displayName,
       uid,
-      email
+      email,
+      password
     })
   }
 
@@ -55,23 +49,32 @@ export class SocketioService {
     this.socket.emit('leave', null)
   }
 
-  public connectToMatch(roomId: string) {
-    this.socket.emit('addToMatch', { 
-      uid: this.userService.user.uid,
-      matchId: roomId,
-    })
+  public leaveToMatch(matchId: string) {
+    if (matchId)
+      this.socket.emit('removeToMatch', matchId)
+    else
+      console.log('error')
   }
 
-  public startGame() {
-    this.socket.emit('startGame', null)
+  public connectToMatch(roomId: string) {
+    if (this.userService.user.uid){
+      this.socket.emit('addToMatch', { 
+        uid: this.userService.user.uid,
+        matchId: roomId,
+      })
+    }
+  }
+
+  public startGame(matchId: string) {
+    this.socket.emit('startGame', matchId)
   }
 
   public changeTurn() {
     this.socket.emit('changeTurn', null)
   }
 
-  public hit(id: string) {
-    this.socket.emit('attack', id)
+  public hit(id: string, matchId: string) {
+    this.socket.emit('attack', {id, matchId})
   }
 
   public hitStatus(status: Object) {
@@ -80,7 +83,7 @@ export class SocketioService {
 
   private playerList(res: Array<Player>) {
     localStorage.removeItem('error')
-    this.userService.setPlayers(res)
+    // this.userService.setPlayers(res)
   }
 
   private error(data: Array<any>) {

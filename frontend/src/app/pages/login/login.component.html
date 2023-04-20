@@ -3,8 +3,20 @@
 
     <div class="content">
         <form class="anonimusPlayerLoguin">
-            <input type="text" name="displayName" id="" [(ngModel)]="name" #textarea placeholder="Name">
-            <button (click)="anonimusPlayerLogin()" [disabled]="name.trim().length < 3">login</button>
+            <input 
+                type="text" 
+                name="displayName" 
+                [(ngModel)]="name"
+                placeholder="Name"
+                required="required">
+            <input 
+                type="password" 
+                name="password" 
+                [(ngModel)]="password"
+                placeholder="Password"
+                required="required">
+
+            <button (click)="anonimusPlayerLogin()">login</button>
         </form>
 
 

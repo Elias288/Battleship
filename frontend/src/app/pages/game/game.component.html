@@ -1,37 +1,65 @@
 <div class="match">
     <div class="board">
-        <!-- <pre style="
-            overflow: auto;
-            max-height: 350px;
-            background-color: #fff;
-        "
-        >{{ tempMatch | json }}</pre> -->
-        <div class="yourBoard">
-            <h2>Your</h2>
-            <div *ngIf="match">
-                <app-board
-                    id="self"
-                    [self]="true"
-                    [matchData]="match"
-                    [selectedShip]="selectedShip"
-                    [ships]="ships"
-                    [canStart]="canStart"
-                    (_printShips)="printShips()"
-                    (cleanSelectedShip)="cleanSelectedShip()"
-                    (isCanStart)="isCanStart($event)">
-                </app-board>
+        <div class="match_info" *ngIf="match">
+            <div class="matchID" style="display: flex; align-items: baseline;">
+                <h1>Match ID: </h1>
+                <h3><strong>{{match.id}}</strong></h3>
+            </div>
+            <div class="players">
+                <h2>Players: </h2>
+                <h3 *ngFor="let player of match.players" [ngStyle]="{'border-bottom': (match.turn == player.uid) ? '3px solid red' : 'none'}">{{player.name}}</h3>
+            </div>
+            <div>
+                <button 
+                    mat-stroked-button 
+                    color="primary" 
+                    (click)="disconnect()">
+                        disconnect
+                </button>
+                <button
+                    mat-stroked-button 
+                    (click)="showMatchLog = !showMatchLog"
+                >
+                    Game Log
+                </button>
+                <button 
+                    mat-stroked-button 
+                    color="primary" 
+                    [disabled]="!canStart" 
+                    (click)="start()">
+                        Start
+                </button>
             </div>
         </div>
-        <div class="enemyBoard">
-            <h2>Enemy</h2>
-            <div *ngIf="match">
-                <app-board
-                    id="enemy"
-                    [self]="false"
-                    [matchData]="match"
-                    [strike]="strike"
-                    (sendHit)="sendHit($event)">
-                </app-board>
+        <div class="boards">
+            <div class="yourBoard">
+                <h2>Your</h2>
+                <div *ngIf="match">
+                    <app-board
+                        id="self"
+                        [self]="true"
+                        [matchData]="match"
+                        [selectedShip]="selectedShip"
+                        [ships]="ships"
+                        [canStart]="canStart"
+                        (cleanSelectedShip)="cleanSelectedShip()"
+                        (cleanFollowMouse)="cleanFollowMouse()"
+                        (isCanStart)="isCanStart($event)">
+                    </app-board>
+                </div>
+            </div>
+            <div class="enemyBoard">
+                <h2>Enemy</h2>
+                <div *ngIf="match">
+                    <app-board
+                        id="enemy"
+                        [self]="false"
+                        [matchData]="match"
+                        [strike]="strike"
+                        (cleanFollowMouse)="cleanFollowMouse()"
+                        (sendHit)="sendHit($event)">
+                    </app-board>
+                </div>
             </div>
         </div>
         <div *ngIf="showMatchLog" class="matchLog">
@@ -44,35 +72,6 @@
         </div>
         
         <div *ngIf="match">
-            <mat-card class="match_info">
-                <mat-card-header>
-                    <mat-card-title>Match ID</mat-card-title>
-                    <mat-card-subtitle>{{match.id}}</mat-card-subtitle>
-                </mat-card-header>
-                <mat-card-content>
-                    <mat-card-title>Players</mat-card-title>
-                    <p *ngFor="let player of match.players">{{player.name}}</p>
-                    <button 
-                        mat-stroked-button 
-                        color="primary" 
-                        (click)="disconnect()">
-                            disconnect
-                    </button>
-                    <button
-                        mat-stroked-button 
-                        (click)="showMatchLog = !showMatchLog"
-                    >
-                        Game Log
-                    </button>
-                    <button 
-                        mat-stroked-button 
-                        color="primary" 
-                        [disabled]="!canStart" 
-                        (click)="start()">
-                            Start
-                    </button>
-                </mat-card-content>
-            </mat-card>
             <mat-card class="ships" *ngIf="userService.playerData?.canPutBoats">
                 <button mat-stroked-button (click)="cleanAll()" [disabled]="match.players.length != 2">Clean</button>
                 <div class="ship">
@@ -129,7 +128,6 @@
             </div>
 
             <div class="attacks" *ngIf="match.turn">
-                <h3 *ngIf="isTurn">Your Turn</h3>
                 <div class="attack1">
                     <button (click)="selectAttack($event)" [disabled]="!isTurn">
                         <img src="assets/img/Attack_1.png" alt="attact_1" id="attack-1">

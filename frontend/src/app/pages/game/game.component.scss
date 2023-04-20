@@ -1,71 +1,53 @@
 .match {
     display: flex;
     height: calc(100vh - 50px);
-    min-height: 700px;
+    // min-height: 700px;
 }
 
 .matchLog {
+    max-height: 500px;
     position: absolute;
     top: 0;
-    width: 50%;
     background-color: #252525;
     color: #fff;
     overflow: auto;
-    height: 200px;
     padding: 1rem 2rem;
+    z-index: 100;
 }
 
 .board {
     width: 100%;
     background-color: green;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
 
     .match_info {
-        position: absolute;
-    }
+        height: fit-content;
+        background-color: #fff;
+        grid-column: 1/3;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding: 0 1rem;
+        box-sizing: border-box;
 
-    .gameBoard {
-        margin: .5rem;
-        display: grid;
-        grid-template-columns: repeat(10, auto);
+        .players {
+            display: flex;
 
-        .gameBoardGrid {
-            background: rgb(90, 152, 247);
-            position: relative;
-            outline: 1px solid;
-            --size: 30px;
-            width: var(--size);
-            height: var(--size);
-
-            .imgSize {
-                width: 100%;
-                height: 100%;
-                position: relative;
-                overflow: hidden;
-
-                img {
-                    display: none;
-                    position: absolute;
-                    object-fit: cover;
-                    width: 100%;
-                    height: 100%;
-                    box-sizing: border-box;
-                }
-            }
-            button {
-                width: 100%;
-                height: 100%;
-                background: none;
-                border: none;
-                
-                &:not(:disabled) {
-                    cursor: pointer;
-                }
+            > * {
+                display: block;
+                margin: 0;
+                border-right: 1px solid;
+                padding: 0 0.5rem;
+                box-sizing: border-box;
             }
         }
+    }
+
+    .boards {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        padding: 4rem;
+        box-sizing: border-box;
     }
 }
 
@@ -73,10 +55,6 @@
     width: 400px;
     padding: 1rem;
     box-sizing: border-box;
-
-    .match_info {
-        margin-bottom: 1rem;
-    }
 
     .ships {
         * {
