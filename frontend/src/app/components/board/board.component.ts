@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { stringify } from '@firebase/util';
-import { UserService } from 'src/app/services/user.service';
+// import { stringify } from '@firebase/util';
+// import { PlayerService } from 'src/app/services/player.service';
 import { Match } from 'src/app/utils/match';
 import { Ship } from 'src/app/utils/ship';
 
@@ -26,17 +26,17 @@ export class BoardComponent implements OnInit {
     enemy:boolean = true
 
     constructor(
-        public userService: UserService,
+        // public userService: PlayerService,
     ) {
     }
 
     ngOnInit(): void {
-        if (this.matchData){
+        /* if (this.matchData){
             this.gameBoardSize = this.fillMatrix(this.matchData.fieldSize)
-        }
+        } */
     }
 
-    private fillMatrix(amount: number): Array<string> {
+    /* private fillMatrix(amount: number): Array<string> {
         let arr: Array<string> = []
 
         for (let index = 0; index < amount; index++) {
@@ -285,5 +285,5 @@ export class BoardComponent implements OnInit {
                 }
             }
         })
-    }
+    } */
 }

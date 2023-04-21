@@ -1,15 +1,14 @@
 export interface Player {
-    uid: string
-    socketId: string
-    id: string
-    
-    name: string
+    _id: string
+    socketId?: string
+    username: string
     email: string
+    casual: boolean
 
     score: Number
     
-    cantShips: number
-    points: number
-    canStart: boolean
-    canPutBoats: boolean
+    cantShips?: number
+    points?: number
+    canStart?: boolean
+    canPutBoats?: boolean
 }

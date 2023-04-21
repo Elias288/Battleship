@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { UserService } from '../../services/user.service';
+import { PlayerService } from '../../services/player.service';
 import { faGoogle } from '@fortawesome/free-brands-svg-icons';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { SocketioService } from 'src/app/services/socketio.service';
+import { FormGroup, FormControl, Validators } from '@angular/forms'
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 
 @Component({
@@ -13,50 +13,70 @@ import { AngularFireAuth } from '@angular/fire/compat/auth';
 })
 export class LoginComponent implements OnInit {
   faGoogle = faGoogle;
-  name: string = ""
-  password: string = ""
+  loginForm!: FormGroup
+  loginCasualForm!: FormGroup
+  hide: boolean = true;
+  casual: boolean = false
 
   constructor(
     private router: Router,
-    private userService: UserService,
+    private playerService: PlayerService,
     private _snackBar: MatSnackBar,
-  ) { }
+  ) {
+    this.playerService.isLoggedIn$.subscribe(status => {
+      if (status) this.router.navigate(['home'])
+    })
+  }
 
   ngOnInit(): void {
-    localStorage.removeItem('error')
+    this.loginForm = new FormGroup({
+      username: new FormControl("", [
+          Validators.required,
+          Validators.minLength(3),
+      ]),
+      password: new FormControl("", [
+          Validators.required,
+          Validators.minLength(3),
+      ])
+    })
+
+    this.loginCasualForm = new FormGroup ({
+      username: new FormControl("", [
+        Validators.required,
+        Validators.minLength(3),
+      ])
+    })
+  }
+
+  PlayerLogin() {
+    const { username, password } = this.loginForm.value
+
+    if (!this.casual) {
+      this.playerService.login(username, password).subscribe({
+        error: (e) => {
+          this._snackBar.open(e.error.errorMessage, 'close', { duration: 5000 })
+        }
+      })
+    }
     
-    if(this.userService.isLoggedIn){
-      this.router.navigate(['home'])
+    if (this.casual) {
+      const { username } = this.loginCasualForm.value
+      this.playerService.casualLogin(username).subscribe({
+        error: (e) => {
+          console.log(e);
+          this._snackBar.open(e.error.errorMessage, 'close', { duration: 5000 })
+        }
+      })
     }
   }
 
-  async anonimusPlayerLogin(): Promise<void> {
-    if (this.name.trim().length < 3){
-      this.openSnackBar('Need a username')
-      return
-    }
-    if (this.password.trim().length < 4){
-      this.openSnackBar('Invalid password')
-      return
-    }
-    
-    const res = await this.userService.anonimusLogin(this.name, this.password)
-    // console.log(res)
-    if (res.error) {
-      this.openSnackBar(res.error)
-      return
-    }
-
-    this.userService.getInfo(res.token)
-  }
-
-  openSnackBar(message: string) {
-    this._snackBar.open(message, 'close');
+  toggleCasual() {
+    this.casual = !this.casual
   }
 
   googlePlayerLogin(): void {
-    const res = this.userService.googleAuth()
-    console.log(res);
-    
+    alert('no implementado aún')
+    // const res = this.userService.googleAuth()
+    // console.log(res); 
   }
 }

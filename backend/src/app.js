@@ -4,7 +4,7 @@ const http = require('http')
 const cors = require('cors')
 const bodyParser = require('body-parser')
 const { author, license, name, description } = require('../package.json');
-const userRoutes = require('./routes/user.routes')
+const playerRoutes = require('./routes/player.routes')
 const handleErrors = require('./middleware/handleErrors')
 // require('./services/bd.service')
 
@@ -38,7 +38,7 @@ app.get('/', (req, res) => {
 // 	res.send(game.getMatch(req.params.id))
 // })
 
-app.use('/api/user', userRoutes)
+app.use('/api/user', playerRoutes)
 
 app.use(handleErrors)
 

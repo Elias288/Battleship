@@ -1,15 +1,24 @@
-<div class="header">
+<div class="container">
     <a href="/home">home</a>
-    <!-- <button (click)="disconnect()">Logout</button>
-    <p>{{ loginService.user.displayName }}</p> -->
+    <!-- <button (click)="disconnect()">Logout</button>-->
+    <!-- <p>{{ loginService.user.displayName }}</p> -->
     <div class="buttons">
-        <label class="status not_connected" *ngIf="!connected"></label>
-        <label class="status connected" *ngIf="connected"></label>
+        <!-- <label class="status not_connected" *ngIf="!connected"></label>
+        <label class="status connected" *ngIf="connected"></label> -->
 
-        <button mat-button [matMenuTriggerFor]="beforeMenu">{{ userService.user.displayName }}</button>
+        <button mat-button (click)="toggleShowPlayer()">Jugadores</button>
+
+        <button mat-button [matMenuTriggerFor]="beforeMenu">{{ playerInfo.username }}</button>
         <mat-menu #beforeMenu="matMenu">
-            <!-- <button mat-menu-item>Item 1</button> -->
-            <button mat-menu-item (click)="disconnect()">Logout</button>
+            <button mat-menu-item (click)="logout()">Logout</button>
         </mat-menu>
+    </div>
+</div>
+<div class="playerListContainer" *ngIf="showPlayers">
+    <h1>Jugadores conectados</h1>
+    <div class="playerList">
+        <div class="playerListItem" *ngFor="let player of onlinePlayers">
+            {{player.username}}
+        </div>
     </div>
 </div>

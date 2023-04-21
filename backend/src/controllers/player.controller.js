@@ -2,13 +2,14 @@ const Joi = require("joi")
 const { joiPasswordExtendCore } = require('joi-password')
 const joiPassword = Joi.extend(joiPasswordExtendCore)
 
-const userService = require('../services/player.service')
+const playerService = require('../services/player.service')
 const { tryCatch } = require('../tryCatch')
-const AppError = require('../AppError')
+const AppError = require('../middleware/AppError')
+const { ALREADY_CREATE } = require("../middleware/errorCodes")
 
 const validEmails = ['com', 'net', 'co', 'uy']
 
-const createUserSchema = Joi.object({
+const createPlayerSchema = Joi.object({
     username: Joi.string()
         .required(),
     email: Joi.string()
@@ -33,7 +34,7 @@ const createUserSchema = Joi.object({
     repeat_password: Joi.ref('password')
 })
 
-const loginUserSchema = Joi.object({
+const loginPlayerSchema = Joi.object({
     email: Joi.string()
         .email({ minDomainSegments: 2, tlds: { allow: validEmails } }),
     username: Joi.string(),
@@ -46,42 +47,42 @@ exports.create = tryCatch(async (req, res) => {
     const { username, email, password, repeat_password } = req.body
 
     if (!process.env.DEV) {
-        const { error } = createUserSchema.validate({ username, email, password, repeat_password })
+        const { error } = createPlayerSchema.validate({ username, email, password, repeat_password })
         if (error) throw error
     }
 
-    const data = await userService.savePlayer(username, email, password)
-    if (data.isError) throw new AppError(data.details, data.statusCode)
+    const data = await playerService.savePlayer(username, email, password)
+    if (data.isError) throw new AppError(data.errorCode, data.details, data.statusCode)
 
     res.status(200).send({ message: 'Usuario creado existosamente' })
 })
 
  exports.login = tryCatch(async (req, res) => {
     const { username, email, password } = req.body,
-    {error} = loginUserSchema.validate({ email, username, password })
+    {error} = loginPlayerSchema.validate({ email, username, password })
     if (error) throw error
 
-    const data = await userService.login(username, email, password)
-    if (data.isError) throw new AppError(data.details, data.statusCode)
+    const data = await playerService.login(username, email, password)
+    if (data.isError) throw new AppError(data.errorCode, data.details, data.statusCode)
 
     res.status(200).send(data)
 })
 
-/*exports.getUser = ( req, res ) => {
-    const token = req.headers['x-access-token']
-    jwt.verify(token, process.env.TOKEN_SECRET, async (err, decoded) => {
-        if (err) return res.status(500).send({ error: 'Authentication Error' })
-        
-        const player = await getPlayerByUid(decoded.uid)
-        if (!player) return res.status(500).send({ error: "Error, user not found" })
-        
-        return res.status(200).send({
-            id: player.id,
-            name: player.name,
-            uid: player.uid,
-            email: player.email,
-            score: player.score,
-        })
-    })
-    
-}  */
+exports.getPlayer = tryCatch(async ( req, res ) => {
+    const { tokenData } = req
+
+    const data = await playerService.getPlayerByid(tokenData.id)
+    if (data.isError) throw new AppError(data.errorCode, data.details, data.statusCode)
+
+    const { _id, username, email, score } = data
+    return res.status(200).send({ _id, username, email, score }) 
+})
+
+exports.existPlayer = tryCatch(async (req, res) => {
+    const { username } = req.params
+
+    const data = await playerService.getPlayerByUsername(username)
+    if (!data.isError) throw new AppError(ALREADY_CREATE, 'Username invalido', 401)
+
+    res.status(200).send({ message: true })
+})

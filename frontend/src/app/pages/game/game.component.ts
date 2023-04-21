@@ -4,7 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { stringify } from '@firebase/util';
 import { BoardComponent } from 'src/app/components/board/board.component';
 import { SocketioService } from 'src/app/services/socketio.service';
-import { UserService } from 'src/app/services/user.service';
+import { PlayerService } from 'src/app/services/player.service';
 import { Match } from 'src/app/utils/match';
 import { Player } from 'src/app/utils/player';
 import { Ship } from 'src/app/utils/ship';
@@ -21,7 +21,7 @@ export class GameComponent implements OnInit {
     match!: Match;
     matchId!: string
     tempMatch: any
-    gameBoardSize: Array<string> = this.fillMatrix(10)
+    // gameBoardSize: Array<string> = this.fillMatrix(10)
     showMatchLog: Boolean = false
 
     ships: Array<Ship> = new Array()
@@ -32,13 +32,13 @@ export class GameComponent implements OnInit {
     canStart: Boolean = false
 
     constructor(
-        public socketIoService: SocketioService,
+        /* public socketIoService: SocketioService,
         private activatedRoute: ActivatedRoute,
-        public userService: UserService,
+        public userService: PlayerService,
         private router: Router,
-        @Inject(DOCUMENT) document: Document,
+        @Inject(DOCUMENT) document: Document, */
     ) {
-        socketIoService.isConnected()
+        /* socketIoService.isConnected()
         socketIoService.connected.subscribe((isConnected: Boolean) => {
             if (!isConnected){
                 // socketIoService.joinBackend()
@@ -54,7 +54,7 @@ export class GameComponent implements OnInit {
         socketIoService.matchData.subscribe((matchData: Match) => {
             this.match = matchData
 
-            /* MATCH LOG */
+            // MATCH LOG 
             const tempPlayers = matchData.players.map(p => {
                 return {
                     cantShips: p.cantShips,
@@ -71,7 +71,7 @@ export class GameComponent implements OnInit {
                 tempPlayers,
                 attacks: matchData.attacks
             }
-            /* MATCH LOG */
+            // MATCH LOG 
 
             if (userService.playerData) {
                 const playerData: Player = userService.playerData
@@ -125,16 +125,16 @@ export class GameComponent implements OnInit {
         this.ships = JSON.parse(window.localStorage.getItem('ships')!) || []
         if (this.ships.length == 5) {
             this.canStart = true
-        }
+        } */
     }
 
     ngOnInit(): void {
-        if (!this.userService.isLoggedIn) {
+        /* if (!this.userService.isLoggedIn) {
             // this.socketIoService.joinBackend()
-        }
+        } */
     }
 
-    @HostListener('document:mousemove', ['$event'])
+    /* @HostListener('document:mousemove', ['$event'])
     private onMouseMove(evt: any): void {
         const followMouse = this.followMouseDiv.nativeElement
         const { clientX, clientY } = evt
@@ -252,5 +252,5 @@ export class GameComponent implements OnInit {
         // window.location.href = "/home";
         this.socketIoService.leaveToMatch(this.matchId)
         this.router.navigate(['/home'])
-    }
+    } */
 }

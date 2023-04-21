@@ -1,9 +1,8 @@
-const AppError = require("../AppError");
+const AppError = require("./AppError");
 
 module.exports = (error, req, res, next) => {
     console.log(`[${new Date().toLocaleString('es-US', { timeZone: 'America/Montevideo', hour12: false })}]`, error)
-    // console.log(error)
-
+    
     if (error instanceof AppError) {
         return res.status(error.statusCode).json({
             errorCode: error.errorCode,

@@ -1,34 +1,41 @@
-class OnlineUsers {
-    users = []
+class Onlineplayers {
+    players = []
 
     constructor(){}
 
-    addNewUser (userId, email, username, socketId, guest) {
-        !this.users.some(user => user.email === email || user.userId === userId | user.username === username) && 
-        this.users.push({ userId, email, username, socketId, guest })
-
+    addNewplayer (playerId, email, username, socketId, guest) {
+        if (this.players.some(player => player.playername === username && player.email === email)) {
+            return {
+                isError: true,
+                details: 'Usuario ya conectado',
+                statusCode: 401,
+            }
+        }
+        
+        this.players.push({ playerId, email, username, socketId, guest })
         if (process.env.DEV)
-            console.log(`[${new Date().toLocaleString('es-US', { timeZone: 'America/Montevideo', hour12: false })}] usuario agregado: [${userId}][${socketId}][${guest}]`);
+            console.log(`[${new Date().toLocaleString('es-US', { timeZone: 'America/Montevideo', hour12: false })}] usuario agregado: [${playerId}][${socketId}][${guest}]`);
+        return { isError: false }
     }
 
-    getUserBySocket(socketId) {
-        return this.users.find(user => user.socketId === socketId)
+    getPlayerBySocket(socketId) {
+        return this.players.find(player => player.socketId === socketId)
     }
 
-    getUserById(id) {
-        return this.users.find(user => user.userId === id)
+    getPlayerById(id) {
+        return this.players.find(player => player.playerId === id)
     }
 
-    getAllUsers () {
-        return this.users
+    getAllPlayers () {
+        return this.players
     }
 
-    removeUser(socketId) {
-        this.users = this.users.filter((user) => user.socketId !== socketId)
+    removePlayer(socketId) {
+        this.players = this.players.filter((player) => player.socketId !== socketId)
 
         if (process.env.DEV)
             console.log(`[${new Date().toLocaleString('es-US', { timeZone: 'America/Montevideo', hour12: false })}] usuario eliminado: [${socketId}]`);
     }
 }
 
-module.exports = OnlineUsers
+module.exports = Onlineplayers

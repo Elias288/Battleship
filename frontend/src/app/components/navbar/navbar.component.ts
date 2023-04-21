@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { SocketioService } from 'src/app/services/socketio.service';
-import { UserService } from 'src/app/services/user.service';
+import { PlayerService } from 'src/app/services/player.service';
+import { Player } from 'src/app/utils/player';
 
 @Component({
   selector: 'app-navbar',
@@ -8,23 +8,31 @@ import { UserService } from 'src/app/services/user.service';
   styleUrls: ['./navbar.component.scss']
 })
 export class NavbarComponent implements OnInit {
-  connected: boolean = false
+  playerInfo!: Player
+
+  showPlayers: Boolean = false
+  onlinePlayers!: Array<any>
 
   constructor(
-    public socketioService: SocketioService,
-    public userService: UserService,
+    private playerService: PlayerService,
   ) {
-    socketioService.connected.subscribe(res => {
-      this.connected = res
+    playerService.player$.subscribe(player => {
+      this.playerInfo = player
+    })
+
+    playerService.onlinePlayers$.subscribe(onlinePlayers => {
+      this.onlinePlayers = onlinePlayers.map(player => { return { username: player.username } } )
     })
   }
 
   ngOnInit(): void {
   }
 
+  logout() {
+    this.playerService.logout()
+  }
 
-  disconnect() {
-    this.socketioService.leaveBackend()
-    this.userService.signOut()
+  toggleShowPlayer() {
+    this.showPlayers = !this.showPlayers
   }
 }

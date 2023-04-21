@@ -1,23 +1,33 @@
+const AppError = require('./middleware/AppError')
+const handleSocketErrors = require('./middleware/handleSocketErrors')
 const OnlineUsers = require('./utils/onlineUsers')
 
 const onlineUsers = new OnlineUsers()
 
 module.exports = (io) => {
     io.on('connection', (socket) => {
+
         socket.on('client:join', async (data) => {
             const { userId, username, email, guest } = data
-            onlineUsers.addNewUser(userId, email, username, socket.id, guest)
+            try {
+                const res = onlineUsers.addNewplayer(userId, email, username, socket.id, guest)
+                if (res.isError) throw new AppError(res.errorCode, res.details, res.statusCode)
 
-            emitOnlineUsers()
+                emitOnlineUsers()
+            } catch (error) {
+                handleSocketErrors(error, socket)
+            }
         })
         
         socket.on('disconnect', () => {
-            onlineUsers.removeUser(socket.id)
+            onlineUsers.removePlayer(socket.id)
             emitOnlineUsers()
         })
 
         const emitOnlineUsers = () => {
-            io.emit('server:onlineUsers', onlineUsers.getAllUsers())
+            const onlinePlayers = onlineUsers.getAllPlayers()
+            if (onlinePlayers.length > 0)
+                io.emit('server:onlineUsers', onlinePlayers)
         }
 
         /* socket.on('join', (data) => join(data))

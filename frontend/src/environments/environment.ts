@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  SOCKET_ENDPOINT: 'http://localhost:3001',
+  ENDPOINT: 'http://localhost:3000',
   firebaseConfig: {
     apiKey: "AIzaSyBHhc3xQqSmDqwSamfeJdZmpaRQVdnYs60",
     authDomain: "battleship-d8efb.firebaseapp.com",

@@ -7,7 +7,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AngularFireModule } from '@angular/fire/compat'
 import { environment } from 'src/environments/environment';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { LoginComponent } from './pages/login/login.component';
 import { NotFoundComponent } from './components/not-found/not-found.component';
@@ -17,6 +17,7 @@ import { GameComponent } from './pages/game/game.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { BoardComponent } from './components/board/board.component';
 import { MaterialModule } from './components/material/material.module';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [
@@ -37,6 +38,8 @@ import { MaterialModule } from './components/material/material.module';
     AngularFireModule.initializeApp(environment.firebaseConfig),
     FontAwesomeModule,
     FormsModule,
+    ReactiveFormsModule,
+    HttpClientModule,
     MaterialModule,
   ],
   providers: [],

@@ -5,46 +5,40 @@ import { io } from 'socket.io-client';
 import { environment } from 'src/environments/environment';
 import { Match } from '../utils/match';
 import { Player } from '../utils/player';
-import { UserService } from './user.service';
+import { PlayerService } from './player.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SocketioService {
   socket: any;
-  connected: EventEmitter<any> = new EventEmitter();
-  matchData: EventEmitter<Match> = new EventEmitter();
-  attack: EventEmitter<string> = new EventEmitter();
+  // connected: EventEmitter<any> = new EventEmitter();
+  // matchData: EventEmitter<Match> = new EventEmitter();
+  // attack: EventEmitter<string> = new EventEmitter();
 
   constructor(
-    private userService: UserService,
+    private userService: PlayerService,
   ) {
-    this.socket = io(environment.SOCKET_ENDPOINT)
+    this.socket = io(environment.ENDPOINT)
 
-    this.socket.on('error', (data: Array<any>) => this.error(data))
-    this.socket.on('playerList', (res: Array<Player>) => this.playerList(res))
-    this.socket.on('matches', (res: Match) => this.matchData.emit(res))
-    this.socket.on('joined', (res: Boolean) => this.connected.emit(res))
-    this.socket.on('attack', (data: any) => this.attack.emit(data))
-    this.socket.on('isConnected', (res: Boolean) => this.connected.emit(res))
-    this.socket.on('disconnect', () => this.disconnect())
+    // this.socket.on('error', (data: Array<any>) => this.error(data))
+    // this.socket.on('playerList', (res: Array<Player>) => this.playerList(res))
+    // this.socket.on('matches', (res: Match) => this.matchData.emit(res))
+    // this.socket.on('joined', (res: Boolean) => this.connected.emit(res))
+    // this.socket.on('attack', (data: any) => this.attack.emit(data))
+    // this.socket.on('isConnected', (res: Boolean) => this.connected.emit(res))
+    // this.socket.on('disconnect', () => this.disconnect())
   }
 
-  public isConnected() {
+  public joinBackend(username: string, userId: string, email: string, guest: boolean) {
+    localStorage.removeItem('error')
+    this.socket.emit('client:join', { userId, username, email, guest })
+  }
+
+    /* public isConnected() {
     this.socket.emit('isConnected', null)
   }
   
-  public joinBackend(displayName: string, uid: string, email: string, password: string) {
-    localStorage.removeItem('error')
-
-    this.socket.emit('join', { 
-      name: displayName,
-      uid,
-      email,
-      password
-    })
-  }
-
   public leaveBackend() {
     this.socket.emit('leave', null)
   }
@@ -95,5 +89,13 @@ export class SocketioService {
   private disconnect() {
     this.connected.emit(false)
     this.userService.setPlayers([])
+  } */
+
+  public getWebSocketError = (callback: any) => {
+    this.socket.on('server:error', callback)
+  }
+
+  public getOnlinePlayers = (callback: any) => {
+    this.socket.on('server:onlineUsers', callback)
   }
 }

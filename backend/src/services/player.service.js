@@ -1,11 +1,13 @@
 const playerSchema = require('../schemas/player.schema')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+const { ALREADY_CREATE, SERVER_ERROR, MISSING_DATA, INVALID_DATA, INFO_NOT_FOUND } = require('../middleware/errorCodes')
 
 exports.savePlayer = async (name, email, password) => {
     const player = await playerSchema.findOne({ $or: [ { username: name }, { email } ] }).exec()
     if (player) return {
         isError: true,
+        errorCode: ALREADY_CREATE,
         details: `Usuario ya registrado`,
         statusCode: 400,
     }
@@ -23,6 +25,7 @@ exports.savePlayer = async (name, email, password) => {
     }).catch((err) => {
         return {
             isError: true,
+            errorCode: SERVER_ERROR,
             details: err,
             statusCode: 500,
         }
@@ -33,6 +36,7 @@ exports.login = async (username, email, password) => {
     const player = await playerSchema.findOne({ $or: [ { username }, { email } ] }).exec()
     if (!player) return {
         isError: true,
+        errorCode: INFO_NOT_FOUND,
         details: 'Usuario no encontrado',
         statusCode: 404,
     }
@@ -44,37 +48,98 @@ exports.login = async (username, email, password) => {
     } else {
         return {
             isError: true,
+            errorCode: INVALID_DATA,
             details: 'Usuario o contraseña invalida',
             statusCode: 400,
         }
     }
 }
 
-/* const saveAnonimPlayer = async (name, uid, password) => {
-    const hashedPassword = await bcrypt.hashSync(password, 8)
-    const player = await findPlayerByName(name)
-    
-    if (player) {
-        if (await bcrypt.compare(password, player.password)) {
-            return player
-        } else {
-            return -1
+exports.deletePlayer = async (id) => {
+    if (!id) return {
+        isError: true,
+        errorCode: MISSING_DATA,
+        details: 'Id es necesaria',
+        statusCode: 404,
+    }
+
+    try {
+        const data = await playerSchema.findByIdAndDelete(id)
+        if (!data) return {
+            isError: true,
+            errorCode: INFO_NOT_FOUND,
+            details: `Usuario no encontrado [${id}]`,
+            statusCode: 404,
         }
-    } 
 
-    const newPlayer = new playerSchema({
-        uid,
-        name,
-        score: 0,
-        password: hashedPassword,
-    })
-    return newPlayer.save()
+        return data
+    } catch (error) {
+        return {
+            isError: true,
+            errorCode: SERVER_ERROR,
+            details: error,
+            statusCode: 500,
+        }
+    }
 }
 
-exports.listPlayers = async () => {
-    return await playerSchema.find({})
+exports.getPlayerByid = async (id) => {
+    if (!id) return {
+        isError: true,
+        errorCode: MISSING_DATA,
+        details: 'Id es necesaria',
+        statusCode: 404,
+    }
+
+    try {
+        const data = await playerSchema.findById(id);
+        if (!data) return {
+            isError: true,
+            errorCode: INFO_NOT_FOUND,
+            details: `Usuario no encontrado [${id}]`,
+            statusCode: 404,
+        }
+
+        return data
+    } catch (error) {
+        return {
+            isError: true,
+            errorCode: SERVER_ERROR,
+            details: error,
+            statusCode: 500,
+        }
+    }
 }
 
+exports.getPlayerByUsername = async (username) => {
+    if (!username) return {
+        isError: true,
+        errorCode: MISSING_DATA,
+        details: 'username es necesario',
+        statusCode: 404,
+    }
+
+    try {
+        const data = await playerSchema.findOne({ username });
+        if (!data) return {
+            isError: true,
+            errorCode: INFO_NOT_FOUND,
+            details: `Usuario no encontrado [${username}]`,
+            statusCode: 404,
+        }
+
+        return data
+    } catch (error) {
+        return {
+            isError: true,
+            errorCode: SERVER_ERROR,
+            details: error,
+            statusCode: 500,
+        }
+    }
+}
+
+/* 
 const setScore = async (id, score, points, sum) => {
     let newScore = 0
     if (sum) {
@@ -85,26 +150,4 @@ const setScore = async (id, score, points, sum) => {
 
     await playerSchema.findByIdAndUpdate(id, { score: newScore }, { new: true })
 }
-
-const deletePlayer = (id) => {
-    return playerSchema.findByIdAndDelete(id)
-}
-
-const getPlayerByUid = (uid) => {
-    return playerSchema.findOne({ uid });
-}
-
-const getPlayerByName = (name) => {
-    return playerSchema.findOne({ name });
-}
-
-
-module.exports = {
-    listPlayers,
-    savePlayer,
-    getPlayerByUid,
-    getPlayerByName,
-    saveAnonimPlayer,
-    deletePlayer,
-    setScore,
-} */
+*/

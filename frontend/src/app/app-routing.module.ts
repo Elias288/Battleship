@@ -7,9 +7,9 @@ import { LoginComponent } from './pages/login/login.component';
 
 const routes: Routes = [
   { path: '', component: LoginComponent },
-  { path: 'home', component: HomeComponent },
-  { path: 'game/:roomId', component: GameComponent },
-  { path: '**', component: NotFoundComponent },
+  { path: 'home', title: "Inicio", component: HomeComponent },
+  { path: 'game/:roomId', title: "Game Room", component: GameComponent },
+  { path: '**', title: "Not Found", component: NotFoundComponent },
 ];
 
 @NgModule({

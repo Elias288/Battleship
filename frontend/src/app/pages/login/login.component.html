@@ -2,27 +2,42 @@
     <h1>Battleship</h1>
 
     <div class="content">
-        <form class="anonimusPlayerLoguin">
-            <input 
-                type="text" 
-                name="displayName" 
-                [(ngModel)]="name"
-                placeholder="Name"
-                required="required">
-            <input 
-                type="password" 
-                name="password" 
-                [(ngModel)]="password"
-                placeholder="Password"
-                required="required">
+        <form [formGroup]="loginForm" class="anonimusPlayerLoguin" *ngIf="!casual" novalidate>
+            <mat-form-field appearance="fill">
+                <mat-label>Username</mat-label>
+                <input matInput formControlName="username">
+            </mat-form-field>
 
-            <button (click)="anonimusPlayerLogin()">login</button>
+            <mat-form-field appearance="fill">
+                <mat-label for="password">Password</mat-label>
+                <input matInput id="password" [type]="hide ? 'password' : 'text'" formControlName="password">
+                
+                <button mat-icon-button matSuffix (click)="hide = !hide" [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide" type="button" tabindex="-1">
+                    <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
+                </button>
+            </mat-form-field> 
+
+            <button mat-raised-button color="primary" type="submit" [disabled]="!loginForm.valid" (click)="PlayerLogin()" autofocus>login</button>
+        </form>
+        
+        <form [formGroup]="loginCasualForm" *ngIf="casual" novalidate>
+            <mat-form-field appearance="fill">
+                <mat-label>Username</mat-label>
+                <input matInput formControlName="username">
+            </mat-form-field>
+            <button mat-raised-button color="primary" type="submit" [disabled]="!loginCasualForm.valid" (click)="PlayerLogin()" autofocus>login</button>
         </form>
 
-
+        <button mat-raised-button (click)="toggleCasual()">
+            Casual
+        </button>
+        <!-- <button mat-raised-button color="primary" (click)="googlePlayerLogin()">
+            <fa-icon [icon]="faGoogle"></fa-icon>
+            Login whit Google
+        </button> -->
         <button mat-raised-button color="primary" (click)="googlePlayerLogin()">
             <fa-icon [icon]="faGoogle"></fa-icon>
-            Login
+            Login whit Google
         </button>
     </div>
 </div>
